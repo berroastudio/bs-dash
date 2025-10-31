@@ -1,7 +1,9 @@
 import json
 import os
 from datetime import datetime
-from .sequences import SequenceManager
+
+# Import corregido - sin el punto
+from sequences import SequenceManager
 
 class CashManager:
     def __init__(self, data_dir="data"):
