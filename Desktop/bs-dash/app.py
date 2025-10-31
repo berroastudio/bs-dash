@@ -1,5 +1,5 @@
 import dash
-from dash import html, dcc, Input, Output, State
+from dash import html, dcc, Input, Output, State, callback_context
 import dash_bootstrap_components as dbc
 import webbrowser
 import threading
@@ -14,7 +14,7 @@ cash_manager = CashManager()
 
 # Función para abrir navegador automáticamente
 def open_browser():
-    time.sleep(2)  # Esperar que el servidor inicie
+    time.sleep(3)
     webbrowser.open("http://127.0.0.1:8050")
 
 # Crear aplicación Dash
@@ -26,7 +26,7 @@ app = dash.Dash(
 
 app.title = "BS Dash - Berroa Studio"
 
-# CSS EXACTO de tu dashboard.html
+# CSS EXACTO con iconos corregidos
 app.index_string = '''
 <!DOCTYPE html>
 <html lang="es">
@@ -35,8 +35,8 @@ app.index_string = '''
     <title>{%title%}</title>
     {%favicon%}
     {%css%}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        /* ESTILOS EXACTOS DE TU DASHBOARD */
         body {
             background-color: #fbfbfb;
             font-family: 'Segoe UI', system-ui, sans-serif;
@@ -149,34 +149,6 @@ app.index_string = '''
         .text-gray-600 { color: #4b5563; }
         .text-gray-800 { color: #1f2937; }
         
-        .animate-fade-in {
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        .animate-slide-in {
-            animation: slideIn 0.5s ease-out;
-        }
-        
-        .animate-scale-in {
-            animation: scaleIn 0.5s ease-out;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(-20px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        @keyframes scaleIn {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-        
-        /* Flex utilities */
         .flex { display: flex; }
         .items-center { align-items: center; }
         .justify-between { justify-content: space-between; }
@@ -185,7 +157,6 @@ app.index_string = '''
         .gap-3 { gap: 0.75rem; }
         .gap-4 { gap: 1rem; }
         
-        /* Text utilities */
         .text-xl { font-size: 1.25rem; }
         .text-2xl { font-size: 1.5rem; }
         .text-sm { font-size: 0.875rem; }
@@ -194,13 +165,10 @@ app.index_string = '''
         .font-bold { font-weight: 700; }
         .font-medium { font-weight: 500; }
         
-        /* Spacing */
         .p-4 { padding: 1rem; }
         .p-3 { padding: 0.75rem; }
         .p-6 { padding: 1.5rem; }
         .px-4 { padding-left: 1rem; padding-right: 1rem; }
-        .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
-        .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
         
         .m-4 { margin: 1rem; }
         .mx-4 { margin-left: 1rem; margin-right: 1rem; }
@@ -219,19 +187,16 @@ app.index_string = '''
         .mr-2 { margin-right: 0.5rem; }
         .mr-3 { margin-right: 0.75rem; }
         
-        /* Width/Height */
         .w-10 { width: 2.5rem; }
         .w-12 { width: 3rem; }
         .w-full { width: 100%; }
         .h-10 { height: 2.5rem; }
         .h-12 { height: 3rem; }
         
-        /* Border radius */
         .rounded-full { border-radius: 9999px; }
         .rounded-lg { border-radius: 0.5rem; }
         .rounded-xl { border-radius: 0.75rem; }
         
-        /* Grid */
         .grid { display: grid; }
         .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
         .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -239,7 +204,6 @@ app.index_string = '''
         .gap-4 { gap: 1rem; }
         .gap-6 { gap: 1.5rem; }
         
-        /* Responsive */
         @media (min-width: 768px) {
             .md\\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
@@ -254,6 +218,8 @@ app.index_string = '''
         .space-y-3 > * + * { margin-top: 0.75rem; }
         .ms-2 { margin-left: 0.5rem; }
         .ms-auto { margin-left: auto; }
+        
+        .hidden { display: none; }
     </style>
 </head>
 <body>
@@ -267,237 +233,198 @@ app.index_string = '''
 </html>
 '''
 
-# Layout EXACTO de tu dashboard.html
+# Layout principal con login
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
+    dcc.Store(id='session-store', data={'isLoggedIn': False}),
     
-    # Header exacto de tu dashboard
-    html.Header(className="bs-card mx-4 mt-4 mb-6", children=[
-        html.Div(className="flex items-center justify-between p-4", children=[
-            # Logo
-            html.Div(className="flex items-center gap-3", children=[
-                html.Div(className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center border border-blue-200", children=[
-                    html.I(className="bi bi-grid-3x3-gap-fill text-blue-600")
+    # Login Page
+    html.Div(id='login-page', className='min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8', children=[
+        html.Div(className='sm:mx-auto sm:w-full sm:max-w-md', children=[
+            html.Div(className='bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10', children=[
+                html.Div(className='text-center mb-8', children=[
+                    html.Div(className='mx-auto h-12 w-12 bg-blue-600 rounded-lg flex items-center justify-center', children=[
+                        html.I(className='bi bi-grid-3x3-gap-fill text-white')
+                    ]),
+                    html.H2('BS Dash', className='mt-6 text-3xl font-extrabold text-gray-900'),
+                    html.P('Inicia sesión en tu cuenta', className='mt-2 text-sm text-gray-600')
                 ]),
-                html.Div(children=[
-                    html.H1("BS Dash", className="text-xl font-bold text-gray-800"),
-                    html.P("Berroa Studio", className="text-sm text-gray-600", id="empresaNombre")
+                
+                html.Div(className='space-y-6', children=[
+                    html.Div(children=[
+                        dbc.Label('Usuario', className='block text-sm font-medium text-gray-700'),
+                        dbc.Input(
+                            id='username-input',
+                            type='text',
+                            placeholder='admin',
+                            className='appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm'
+                        )
+                    ]),
+                    
+                    html.Div(children=[
+                        dbc.Label('Contraseña', className='block text-sm font-medium text-gray-700'),
+                        dbc.Input(
+                            id='password-input',
+                            type='password',
+                            placeholder='admin',
+                            className='appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm'
+                        )
+                    ]),
+                    
+                    html.Div(children=[
+                        dbc.Button(
+                            'Iniciar Sesión',
+                            id='login-button',
+                            color='primary',
+                            className='w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                        )
+                    ]),
+                    
+                    html.Div(id='login-feedback')
                 ])
-            ]),
-
-            # User Info
-            html.Div(className="flex items-center gap-4", children=[
-                html.Div(className="text-right", children=[
-                    html.P("John Berroa", className="font-medium text-gray-800", id="userName"),
-                    html.P("Administrador", className="text-xs text-gray-500")
-                ]),
-                html.Div(className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center border border-gray-300", children=[
-                    html.I(className="bi bi-person text-gray-600")
-                ]),
-                html.Button(
-                    className="bs-btn bg-red-50 text-red-600 border-red-200 hover:bg-red-100",
-                    children=[
-                        html.I(className="bi bi-box-arrow-right"),
-                        "Salir"
-                    ],
-                    id="logout-btn"
-                )
             ])
         ])
     ]),
-
-    # Main Content exacto
-    html.Main(className="max-w-7xl mx-auto px-4", children=[
-        # Stats Cards
-        html.Div(className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8", children=[
-            # Ventas
-            html.Div(className="bs-stat-card p-4 animate-fade-in", children=[
-                html.Div(className="flex items-center justify-between", children=[
-                    html.Div(children=[
-                        html.P("Ventas Hoy", className="text-sm text-gray-500"),
-                        html.H3("$4,250", className="text-2xl font-bold text-gray-800 mt-1"),
-                        html.P(className="text-xs text-green-500 mt-1", children=[
-                            "↑ 12% vs ayer"
-                        ])
+    
+    # Dashboard Page (oculto inicialmente)
+    html.Div(id='dashboard-page', className='hidden', children=[
+        # Header
+        html.Header(className="bs-card mx-4 mt-4 mb-6", children=[
+            html.Div(className="flex items-center justify-between p-4", children=[
+                # Logo
+                html.Div(className="flex items-center gap-3", children=[
+                    html.Div(className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center border border-blue-200", children=[
+                        html.I(className="bi bi-grid-3x3-gap-fill text-blue-600")
                     ]),
-                    html.Div(className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center border border-green-200", children=[
-                        html.I(className="bi bi-currency-dollar text-green-600 text-xl")
-                    ])
-                ])
-            ]),
-
-            # Inventario
-            html.Div(className="bs-stat-card p-4 animate-fade-in", style={'animationDelay': '0.1s'}, children=[
-                html.Div(className="flex items-center justify-between", children=[
                     html.Div(children=[
-                        html.P("Productos Stock", className="text-sm text-gray-500"),
-                        html.H3("1,248", className="text-2xl font-bold text-gray-800 mt-1"),
-                        html.P(className="text-xs text-red-500 mt-1", children=[
-                            "⚠️ 15 bajos"
-                        ])
-                    ]),
-                    html.Div(className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center border border-blue-200", children=[
-                        html.I(className="bi bi-box-seam text-blue-600 text-xl")
+                        html.H1("BS Dash", className="text-xl font-bold text-gray-800"),
+                        html.P("Berroa Studio", className="text-sm text-gray-600", id="empresaNombre")
                     ])
-                ])
-            ]),
+                ]),
 
-            # Órdenes
-            html.Div(className="bs-stat-card p-4 animate-fade-in", style={'animationDelay': '0.2s'}, children=[
-                html.Div(className="flex items-center justify-between", children=[
-                    html.Div(children=[
-                        html.P("Órdenes Pendientes", className="text-sm text-gray-500"),
-                        html.H3("24", className="text-2xl font-bold text-gray-800 mt-1"),
-                        html.P(className="text-xs text-yellow-500 mt-1", children=[
-                            "⏰ 5 sin asignar"
-                        ])
+                # User Info
+                html.Div(className="flex items-center gap-4", children=[
+                    html.Div(className="text-right", children=[
+                        html.P("John Berroa", className="font-medium text-gray-800", id="userName"),
+                        html.P("Administrador", className="text-xs text-gray-500")
                     ]),
-                    html.Div(className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center border border-purple-200", children=[
-                        html.I(className="bi bi-clipboard-check text-purple-600 text-xl")
-                    ])
-                ])
-            ]),
-
-            # Clientes
-            html.Div(className="bs-stat-card p-4 animate-fade-in", style={'animationDelay': '0.3s'}, children=[
-                html.Div(className="flex items-center justify-between", children=[
-                    html.Div(children=[
-                        html.P("Clientes Activos", className="text-sm text-gray-500"),
-                        html.H3("156", className="text-2xl font-bold text-gray-800 mt-1"),
-                        html.P(className="text-xs text-gray-500 mt-1", children=[
-                            "👥 Total registrados"
-                        ])
+                    html.Div(className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center border border-gray-300", children=[
+                        html.I(className="bi bi-person text-gray-600")
                     ]),
-                    html.Div(className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center border border-orange-200", children=[
-                        html.I(className="bi bi-people text-orange-600 text-xl")
-                    ])
+                    dbc.Button(
+                        "Salir",
+                        id="logout-btn",
+                        color="danger",
+                        className="bs-btn bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
+                    )
                 ])
             ])
         ]),
 
-        # Módulos Principales
-        html.Div(className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8", children=[
-            # Módulo POS
-            html.Div(className="lg:col-span-2", children=[
-                html.Div(className="bs-card p-6 animate-slide-in", children=[
-                    html.Div(className="flex items-center justify-between mb-6", children=[
-                        html.H2(className="text-xl font-bold text-gray-800 flex items-center gap-2", children=[
-                            "💳 Punto de Venta"
+        # Main Content
+        html.Main(className="max-w-7xl mx-auto px-4", children=[
+            # Stats Cards
+            html.Div(className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8", children=[
+                # Ventas
+                html.Div(className="bs-stat-card p-4", children=[
+                    html.Div(className="flex items-center justify-between", children=[
+                        html.Div(children=[
+                            html.P("Ventas Hoy", className="text-sm text-gray-500"),
+                            html.H3("$4,250", className="text-2xl font-bold text-gray-800 mt-1"),
+                            html.P("↑ 12% vs ayer", className="text-xs text-green-500 mt-1")
                         ]),
-                        dbc.Button("Nueva Venta", color="primary", href="/pos", className="bs-btn-primary")
-                    ]),
+                        html.Div(className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center border border-green-200", children=[
+                            html.I(className="bi bi-currency-dollar text-green-600 text-xl")
+                        ])
+                    ])
+                ]),
 
-                    html.Div(className="grid grid-cols-1 md:grid-cols-2 gap-4", children=[
-                        html.Div(className="bs-module-card p-4", children=[
-                            html.H3(className="font-medium text-gray-700 mb-2 flex items-center gap-2", children=[
-                                "⚡ Venta Rápida"
-                            ]),
-                            html.P("Procesa una venta rápida con productos frecuentes", className="text-sm text-gray-500 mb-3"),
-                            dbc.Button("Iniciar", color="secondary", href="/pos-rapida", className="w-100")
+                # Inventario
+                html.Div(className="bs-stat-card p-4", children=[
+                    html.Div(className="flex items-center justify-between", children=[
+                        html.Div(children=[
+                            html.P("Productos Stock", className="text-sm text-gray-500"),
+                            html.H3("1,248", className="text-2xl font-bold text-gray-800 mt-1"),
+                            html.P("⚠️ 15 bajos", className="text-xs text-red-500 mt-1")
                         ]),
+                        html.Div(className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center border border-blue-200", children=[
+                            html.I(className="bi bi-box-seam text-blue-600 text-xl")
+                        ])
+                    ])
+                ]),
 
-                        html.Div(className="bs-module-card p-4", children=[
-                            html.H3(className="font-medium text-gray-700 mb-2 flex items-center gap-2", children=[
-                                "📋 Venta Detallada"
-                            ]),
-                            html.P("Procesa una venta con múltiples productos", className="text-sm text-gray-500 mb-3"),
-                            dbc.Button("Iniciar", color="secondary", href="/pos-detallada", className="w-100")
+                # Órdenes
+                html.Div(className="bs-stat-card p-4", children=[
+                    html.Div(className="flex items-center justify-between", children=[
+                        html.Div(children=[
+                            html.P("Órdenes Pendientes", className="text-sm text-gray-500"),
+                            html.H3("24", className="text-2xl font-bold text-gray-800 mt-1"),
+                            html.P("⏰ 5 sin asignar", className="text-xs text-yellow-500 mt-1")
+                        ]),
+                        html.Div(className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center border border-purple-200", children=[
+                            html.I(className="bi bi-clipboard-check text-purple-600 text-xl")
+                        ])
+                    ])
+                ]),
+
+                # Clientes
+                html.Div(className="bs-stat-card p-4", children=[
+                    html.Div(className="flex items-center justify-between", children=[
+                        html.Div(children=[
+                            html.P("Clientes Activos", className="text-sm text-gray-500"),
+                            html.H3("156", className="text-2xl font-bold text-gray-800 mt-1"),
+                            html.P("👥 Total registrados", className="text-xs text-gray-500 mt-1")
+                        ]),
+                        html.Div(className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center border border-orange-200", children=[
+                            html.I(className="bi bi-people text-orange-600 text-xl")
                         ])
                     ])
                 ])
             ]),
 
-            # Módulos Rápidos
-            html.Div(className="bs-card p-6 animate-scale-in", children=[
-                html.H2(className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2", children=[
-                    "📦 Módulos"
+            # Módulos Principales
+            html.Div(className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8", children=[
+                # Módulo POS
+                html.Div(className="lg:col-span-2", children=[
+                    html.Div(className="bs-card p-6", children=[
+                        html.Div(className="flex items-center justify-between mb-6", children=[
+                            html.H2("💳 Punto de Venta", className="text-xl font-bold text-gray-800"),
+                            dbc.Button("Nueva Venta", id="pos-btn", color="primary", className="bs-btn-primary")
+                        ]),
+                        html.Div(className="grid grid-cols-1 md:grid-cols-2 gap-4", children=[
+                            html.Div(className="bs-module-card p-4", children=[
+                                html.H3("⚡ Venta Rápida", className="font-medium text-gray-700 mb-2"),
+                                html.P("Procesa una venta rápida con productos frecuentes", className="text-sm text-gray-500 mb-3"),
+                                dbc.Button("Iniciar", id="venta-rapida-btn", color="secondary", className="w-100")
+                            ]),
+                            html.Div(className="bs-module-card p-4", children=[
+                                html.H3("📋 Venta Detallada", className="font-medium text-gray-700 mb-2"),
+                                html.P("Procesa una venta con múltiples productos", className="text-sm text-gray-500 mb-3"),
+                                dbc.Button("Iniciar", id="venta-detallada-btn", color="secondary", className="w-100")
+                            ])
+                        ])
+                    ])
                 ]),
 
-                html.Div(className="space-y-3", children=[
-                    dbc.NavLink(
-                        html.Div(className="bs-module-card flex items-center p-3", children=[
-                            html.Div(className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3 border border-blue-200", children=["📦"]),
-                            html.Div(children=[
-                                html.H3("Inventario", className="font-medium text-gray-800"),
-                                html.P("Gestionar productos y stock", className="text-xs text-gray-500")
-                            ])
-                        ]),
-                        href="/inventario"
-                    ),
-
-                    dbc.NavLink(
-                        html.Div(className="bs-module-card flex items-center p-3", children=[
-                            html.Div(className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3 border border-green-200", children=["📄"]),
-                            html.Div(children=[
-                                html.H3("Cotizaciones", className="font-medium text-gray-800"),
-                                html.P("Crear y gestionar cotizaciones", className="text-xs text-gray-500")
-                            ])
-                        ]),
-                        href="/cotizaciones"
-                    ),
-
-                    dbc.NavLink(
-                        html.Div(className="bs-module-card flex items-center p-3", children=[
-                            html.Div(className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3 border border-purple-200", children=["✅"]),
-                            html.Div(children=[
-                                html.H3("Órdenes", className="font-medium text-gray-800"),
-                                html.P("Ver y asignar órdenes", className="text-xs text-gray-500")
-                            ])
-                        ]),
-                        href="/ordenes"
-                    ),
-
-                    dbc.NavLink(
-                        html.Div(className="bs-module-card flex items-center p-3", children=[
-                            html.Div(className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3 border border-orange-200", children=["🧾"]),
-                            html.Div(children=[
-                                html.H3("Facturación", className="font-medium text-gray-800"),
-                                html.P("Gestión de facturas", className="text-xs text-gray-500")
-                            ])
-                        ]),
-                        href="/facturacion"
-                    ),
-
-                    dbc.NavLink(
-                        html.Div(className="bs-module-card flex items-center p-3", children=[
-                            html.Div(className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3 border border-purple-200", children=["⚙️"]),
-                            html.Div(children=[
-                                html.H3("Configuración", className="font-medium text-gray-800"),
-                                html.P("Ajustes del sistema", className="text-xs text-gray-500")
-                            ])
-                        ]),
-                        href="/configuracion"
-                    ),
-
-                    # NUEVOS MÓDULOS PYTHON
-                    dbc.NavLink(
-                        html.Div(className="bs-module-card flex items-center p-3", children=[
-                            html.Div(className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3 border border-blue-200", children=["🔢"]),
-                            html.Div(children=[
-                                html.H3("Secuencias", className="font-medium text-gray-800"),
-                                html.P("Configurar números de secuencia", className="text-xs text-gray-500")
-                            ])
-                        ]),
-                        href="/secuencias"
-                    ),
-
-                    dbc.NavLink(
-                        html.Div(className="bs-module-card flex items-center p-3", children=[
-                            html.Div(className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3 border border-green-200", children=["💰"]),
-                            html.Div(children=[
-                                html.H3("Caja", className="font-medium text-gray-800"),
-                                html.P("Gestión de apertura/cierre", className="text-xs text-gray-500")
-                            ])
-                        ]),
-                        href="/caja"
-                    )
+                # Módulos Rápidos
+                html.Div(className="bs-card p-6", children=[
+                    html.H2("📦 Módulos", className="text-xl font-bold text-gray-800 mb-4"),
+                    html.Div(className="space-y-3", children=[
+                        dbc.Button("📦 Inventario", id="inventario-btn", color="light", className="bs-module-card w-full text-left justify-start"),
+                        dbc.Button("📄 Cotizaciones", id="cotizaciones-btn", color="light", className="bs-module-card w-full text-left justify-start"),
+                        dbc.Button("✅ Órdenes", id="ordenes-btn", color="light", className="bs-module-card w-full text-left justify-start"),
+                        dbc.Button("🧾 Facturación", id="facturacion-btn", color="light", className="bs-module-card w-full text-left justify-start"),
+                        dbc.Button("⚙️ Configuración", id="configuracion-btn", color="light", className="bs-module-card w-full text-left justify-start"),
+                        dbc.Button("🔢 Secuencias", id="secuencias-btn", color="light", className="bs-module-card w-full text-left justify-start"),
+                        dbc.Button("💰 Caja", id="caja-btn", color="light", className="bs-module-card w-full text-left justify-start")
+                    ])
                 ])
             ])
-        ])
-    ]),
-    
-    # Área de contenido para módulos
-    html.Div(id="page-content", className="mt-8")
+        ]),
+        
+        # Área de contenido para módulos
+        html.Div(id="module-content", className="mt-8")
+    ])
 ])
 
 # Importar módulos Python
@@ -509,43 +436,90 @@ except ImportError as e:
     secuencias_layout = html.Div([html.H3("🔢 Secuencias"), html.P("Módulo no disponible")])
     caja_layout = html.Div([html.H3("💰 Caja"), html.P("Módulo no disponible")])
 
-# Layouts para otros módulos
-inventario_layout = html.Div([html.H3("📦 Inventario"), html.P("Módulo en desarrollo")])
-pos_layout = html.Div([html.H3("💳 Punto de Venta"), html.P("Módulo en desarrollo")])
-configuracion_layout = html.Div([html.H3("⚙️ Configuración"), html.P("Módulo en desarrollo")])
-cotizaciones_layout = html.Div([html.H3("📄 Cotizaciones"), html.P("Módulo en desarrollo")])
-ordenes_layout = html.Div([html.H3("✅ Órdenes"), html.P("Módulo en desarrollo")])
-facturacion_layout = html.Div([html.H3("🧾 Facturación"), html.P("Módulo en desarrollo")])
+# Layouts para módulos
+inventario_layout = html.Div([html.H3("📦 Inventario"), html.P("Sistema de gestión de productos")])
+pos_layout = html.Div([html.H3("💳 Punto de Venta"), html.P("Sistema de ventas")])
+configuracion_layout = html.Div([html.H3("⚙️ Configuración"), html.P("Ajustes del sistema")])
+cotizaciones_layout = html.Div([html.H3("📄 Cotizaciones"), html.P("Crear y gestionar cotizaciones")])
+ordenes_layout = html.Div([html.H3("✅ Órdenes"), html.P("Ver y asignar órdenes")])
+facturacion_layout = html.Div([html.H3("🧾 Facturación"), html.P("Gestión de facturas")])
 
-# Callback para navegación
+# Callback para login
 @app.callback(
-    Output("page-content", "children"),
-    [Input("url", "pathname")]
+    [Output('login-page', 'className'),
+     Output('dashboard-page', 'className'),
+     Output('login-feedback', 'children')],
+    [Input('login-button', 'n_clicks')],
+    [State('username-input', 'value'),
+     State('password-input', 'value')]
 )
-def display_page(pathname):
-    if pathname == "/secuencias":
-        return secuencias_layout
-    elif pathname == "/caja":
-        return caja_layout
-    elif pathname == "/inventario":
+def login(n_clicks, username, password):
+    if n_clicks:
+        if username == "admin" and password == "admin":
+            return 'hidden', '', dbc.Alert("✅ Login exitoso", color="success", duration=2000)
+        else:
+            return '', 'hidden', dbc.Alert("❌ Usuario o contraseña incorrectos", color="danger")
+    return '', 'hidden', ''
+
+# Callback para logout
+@app.callback(
+    [Output('login-page', 'className', allow_duplicate=True),
+     Output('dashboard-page', 'className', allow_duplicate=True)],
+    [Input('logout-btn', 'n_clicks')],
+    prevent_initial_call=True
+)
+def logout(n_clicks):
+    if n_clicks:
+        return '', 'hidden'
+    return dash.no_update, dash.no_update
+
+# Callback para módulos
+@app.callback(
+    Output("module-content", "children"),
+    [Input("inventario-btn", "n_clicks"),
+     Input("cotizaciones-btn", "n_clicks"),
+     Input("ordenes-btn", "n_clicks"),
+     Input("facturacion-btn", "n_clicks"),
+     Input("configuracion-btn", "n_clicks"),
+     Input("secuencias-btn", "n_clicks"),
+     Input("caja-btn", "n_clicks"),
+     Input("pos-btn", "n_clicks"),
+     Input("venta-rapida-btn", "n_clicks"),
+     Input("venta-detallada-btn", "n_clicks")],
+    prevent_initial_call=True
+)
+def show_module(inv, cot, ord, fac, conf, sec, caj, pos, rap, det):
+    ctx = callback_context
+    if not ctx.triggered:
+        return html.Div()
+    
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    
+    if button_id == 'inventario-btn':
         return inventario_layout
-    elif pathname == "/pos":
-        return pos_layout
-    elif pathname == "/configuracion":
-        return configuracion_layout
-    elif pathname == "/cotizaciones":
+    elif button_id == 'cotizaciones-btn':
         return cotizaciones_layout
-    elif pathname == "/ordenes":
+    elif button_id == 'ordenes-btn':
         return ordenes_layout
-    elif pathname == "/facturacion":
+    elif button_id == 'facturacion-btn':
         return facturacion_layout
-    else:
-        return html.Div()  # Vacío para dashboard principal
+    elif button_id == 'configuracion-btn':
+        return configuracion_layout
+    elif button_id == 'secuencias-btn':
+        return secuencias_layout
+    elif button_id == 'caja-btn':
+        return caja_layout
+    elif button_id == 'pos-btn':
+        return pos_layout
+    elif button_id in ['venta-rapida-btn', 'venta-detallada-btn']:
+        return pos_layout
+    
+    return html.Div()
 
 if __name__ == '__main__':
     print("🚀 Iniciando BS Dashboard...")
-    print("🎨 Diseño EXACTO de dashboard.html cargado")
-    print("📊 Módulos Python integrados: Secuencias, Caja")
+    print("🔐 Sistema de login activado")
+    print("📊 Módulos Python: Secuencias, Caja")
     print("🌐 Abriendo automáticamente: http://127.0.0.1:8050")
     
     # Abrir navegador automáticamente
