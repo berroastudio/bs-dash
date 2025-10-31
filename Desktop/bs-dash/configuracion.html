@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BS Dash - Configuración</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body class="bg-[#fbfbfb] min-h-screen">
+    <header class="bs-card mx-4 mt-4 mb-6">
+        <div class="flex items-center justify-between p-4">
+            <div class="flex items-center gap-4">
+                <a href="../dashboard.html" class="bs-btn">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center border border-purple-200">
+                        <i class="bi bi-gear text-purple-600"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-800">Configuración</h1>
+                        <p class="text-sm text-gray-600">Ajustes del sistema</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <span class="text-gray-700" id="userName">John Berroa</span>
+                <button onclick="logout()" class="bs-btn bg-red-50 text-red-600 border-red-200">
+                    <i class="bi bi-box-arrow-right"></i> Salir
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4">
+        <!-- Configuración POS -->
+        <div class="bs-card p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                <i class="bi bi-cash-coin text-green-600"></i>
+                Configuración Punto de Venta
+            </h2>
+            
+            <div class="space-y-6">
+                <!-- Métodos de Pago -->
+                <div>
+                    <h3 class="font-medium text-gray-800 mb-3">Métodos de Pago</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="metodosPagoContainer">
+                        <!-- Métodos se cargan con JavaScript -->
+                    </div>
+                    <button onclick="agregarMetodoPago()" class="bs-btn mt-3">
+                        <i class="bi bi-plus"></i> Agregar Método de Pago
+                    </button>
+                </div>
+
+                <!-- Tipos de Facturación -->
+                <div>
+                    <h3 class="font-medium text-gray-800 mb-3">Tipos de Facturación</h3>
+                    <div class="space-y-2" id="tiposFacturacionContainer">
+                        <!-- Tipos se cargan con JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Configuración General -->
+                <div>
+                    <h3 class="font-medium text-gray-800 mb-3">Configuración General</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <label class="text-gray-700">Habilitar descuentos en ventas</label>
+                            <input type="checkbox" id="habilitarDescuentos" class="w-5 h-5">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-gray-700">Solicitar cliente en ventas</label>
+                            <input type="checkbox" id="solicitarCliente" class="w-5 h-5">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-gray-700">IVA por defecto (%)</label>
+                            <input type="number" id="ivaPorDefecto" class="w-20 px-3 py-2 border border-gray-300 rounded-lg" value="12" min="0" max="100">
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="guardarConfiguracion()" class="bs-btn bs-btn-primary">
+                    <i class="bi bi-check-lg"></i> Guardar Configuración
+                </button>
+            </div>
+        </div>
+
+        <!-- Gestión de Clientes -->
+        <div class="bs-card p-6">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                <i class="bi bi-people text-blue-600"></i>
+                Gestión de Clientes
+            </h2>
+            
+            <div class="space-y-4">
+                <button onclick="abrirModalCliente()" class="bs-btn bs-btn-primary">
+                    <i class="bi bi-person-plus"></i> Agregar Cliente
+                </button>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Código</th>
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Nombre</th>
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Identificación</th>
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Teléfono</th>
+                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaClientes">
+                            <!-- Clientes se cargan con JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Cliente -->
+    <div id="modalCliente" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bs-card p-6 w-full max-w-md mx-4">
+            <h3 class="text-xl font-bold mb-4" id="tituloModalCliente">Nuevo Cliente</h3>
+            
+            <form id="formCliente" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Código</label>
+                    <input type="text" id="clienteCodigo" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nombre/Razón Social</label>
+                    <input type="text" id="clienteNombre" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">RUC/Cédula</label>
+                    <input type="text" id="clienteIdentificacion" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono</label>
+                    <input type="text" id="clienteTelefono" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input type="email" id="clienteEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                </div>
+                
+                <div class="flex justify-end gap-3 pt-4">
+                    <button type="button" onclick="cerrarModalCliente()" class="bs-btn">Cancelar</button>
+                    <button type="submit" class="bs-btn bs-btn-primary">Guardar Cliente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/database.js"></script>
+    <script>
+        // Verificar autenticación
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = '../index.html';
+        }
+
+        document.getElementById('userName').textContent = localStorage.getItem('userName') || 'John Berroa';
+
+        // Cargar configuración al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarConfiguracion();
+            cargarClientes();
+        });
+
+        // CONFIGURACIÓN DEL SISTEMA
+        function cargarConfiguracion() {
+            // Cargar métodos de pago
+            const metodosPago = JSON.parse(localStorage.getItem('bsdash_metodosPago') || '["Efectivo", "Tarjeta Débito", "Tarjeta Crédito", "Transferencia"]');
+            const metodosContainer = document.getElementById('metodosPagoContainer');
+            metodosContainer.innerHTML = '';
+
+            metodosPago.forEach((metodo, index) => {
+                const metodoHTML = `
+                    <div class="flex items-center gap-3 p-3 border border-gray-300 rounded-lg">
+                        <input type="text" value="${metodo}" onchange="actualizarMetodoPago(${index}, this.value)" 
+                               class="flex-1 px-3 py-2 border border-gray-300 rounded-lg">
+                        <button onclick="eliminarMetodoPago(${index})" class="bs-btn bg-red-50 text-red-600 border-red-200 text-sm">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                `;
+                metodosContainer.innerHTML += metodoHTML;
+            });
+
+            // Cargar tipos de facturación
+            const tiposFacturacion = JSON.parse(localStorage.getItem('bsdash_tiposFacturacion') || '["Factura", "Boleta de Venta", "Liquidación de Compra"]');
+            const tiposContainer = document.getElementById('tiposFacturacionContainer');
+            tiposContainer.innerHTML = '';
+
+            tiposFacturacion.forEach((tipo, index) => {
+                const tipoHTML = `
+                    <div class="flex items-center gap-3">
+                        <input type="radio" name="tipoFacturacion" value="${tipo}" id="tipo${index}" 
+                               ${index === 0 ? 'checked' : ''} class="w-4 h-4">
+                        <label for="tipo${index}" class="text-gray-700">${tipo}</label>
+                    </div>
+                `;
+                tiposContainer.innerHTML += tipoHTML;
+            });
+
+            // Cargar configuración general
+            const config = JSON.parse(localStorage.getItem('bsdash_configuracion') || '{}');
+            document.getElementById('habilitarDescuentos').checked = config.habilitarDescuentos || false;
+            document.getElementById('solicitarCliente').checked = config.solicitarCliente || false;
+            document.getElementById('ivaPorDefecto').value = config.ivaPorDefecto || 12;
+        }
+
+        function agregarMetodoPago() {
+            const metodosPago = JSON.parse(localStorage.getItem('bsdash_metodosPago') || '["Efectivo", "Tarjeta Débito", "Tarjeta Crédito", "Transferencia"]');
+            metodosPago.push('Nuevo Método');
+            localStorage.setItem('bsdash_metodosPago', JSON.stringify(metodosPago));
+            cargarConfiguracion();
+        }
+
+        function actualizarMetodoPago(index, valor) {
+            const metodosPago = JSON.parse(localStorage.getItem('bsdash_metodosPago') || '["Efectivo", "Tarjeta Débito", "Tarjeta Crédito", "Transferencia"]');
+            metodosPago[index] = valor;
+            localStorage.setItem('bsdash_metodosPago', JSON.stringify(metodosPago));
+        }
+
+        function eliminarMetodoPago(index) {
+            const metodosPago = JSON.parse(localStorage.getItem('bsdash_metodosPago') || '["Efectivo", "Tarjeta Débito", "Tarjeta Crédito", "Transferencia"]');
+            if (metodosPago.length > 1) {
+                metodosPago.splice(index, 1);
+                localStorage.setItem('bsdash_metodosPago', JSON.stringify(metodosPago));
+                cargarConfiguracion();
+            } else {
+                alert('Debe haber al menos un método de pago');
+            }
+        }
+
+        function guardarConfiguracion() {
+            const config = {
+                habilitarDescuentos: document.getElementById('habilitarDescuentos').checked,
+                solicitarCliente: document.getElementById('solicitarCliente').checked,
+                ivaPorDefecto: parseFloat(document.getElementById('ivaPorDefecto').value)
+            };
+            
+            localStorage.setItem('bsdash_configuracion', JSON.stringify(config));
+            alert('✅ Configuración guardada correctamente');
+        }
+
+        // GESTIÓN DE CLIENTES
+        function cargarClientes() {
+            const clientes = db.getClientes();
+            const tabla = document.getElementById('tablaClientes');
+            tabla.innerHTML = '';
+
+            clientes.forEach(cliente => {
+                const fila = `
+                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                        <td class="py-3 px-4 font-mono">${cliente.codigo}</td>
+                        <td class="py-3 px-4">${cliente.nombre}</td>
+                        <td class="py-3 px-4">${cliente.ruc_ci}</td>
+                        <td class="py-3 px-4">${cliente.telefono || '-'}</td>
+                        <td class="py-3 px-4">
+                            <button onclick="editarCliente(${cliente.id})" class="bs-btn text-sm">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tabla.innerHTML += fila;
+            });
+        }
+
+        let clienteEditando = null;
+
+        function abrirModalCliente() {
+            clienteEditando = null;
+            document.getElementById('tituloModalCliente').textContent = 'Nuevo Cliente';
+            document.getElementById('formCliente').reset();
+            document.getElementById('modalCliente').classList.remove('hidden');
+            document.getElementById('modalCliente').classList.add('flex');
+        }
+
+        function cerrarModalCliente() {
+            document.getElementById('modalCliente').classList.add('hidden');
+            document.getElementById('modalCliente').classList.remove('flex');
+        }
+
+        function editarCliente(id) {
+            const clientes = db.getClientes();
+            clienteEditando = clientes.find(c => c.id === id);
+            
+            if (clienteEditando) {
+                document.getElementById('tituloModalCliente').textContent = 'Editar Cliente';
+                document.getElementById('clienteCodigo').value = clienteEditando.codigo;
+                document.getElementById('clienteNombre').value = clienteEditando.nombre;
+                document.getElementById('clienteIdentificacion').value = clienteEditando.ruc_ci;
+                document.getElementById('clienteTelefono').value = clienteEditando.telefono || '';
+                document.getElementById('clienteEmail').value = clienteEditando.email || '';
+                
+                document.getElementById('modalCliente').classList.remove('hidden');
+                document.getElementById('modalCliente').classList.add('flex');
+            }
+        }
+
+        document.getElementById('formCliente').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const cliente = {
+                codigo: document.getElementById('clienteCodigo').value,
+                nombre: document.getElementById('clienteNombre').value,
+                ruc_ci: document.getElementById('clienteIdentificacion').value,
+                telefono: document.getElementById('clienteTelefono').value,
+                email: document.getElementById('clienteEmail').value
+            };
+
+            if (clienteEditando) {
+                // Editar cliente existente
+                cliente.id = clienteEditando.id;
+                const clientes = db.getClientes();
+                const index = clientes.findIndex(c => c.id === cliente.id);
+                if (index !== -1) {
+                    clientes[index] = cliente;
+                    db.set('clientes', clientes);
+                }
+            } else {
+                // Nuevo cliente
+                db.addCliente(cliente);
+            }
+
+            cerrarModalCliente();
+            cargarClientes();
+            alert('Cliente guardado exitosamente');
+        });
+
+        function logout() {
+            if(confirm("¿Estás seguro de que deseas cerrar sesión?")) {
+                localStorage.clear();
+                window.location.href = '../index.html';
+            }
+        }
+    </script>
+</body>
+</html>
