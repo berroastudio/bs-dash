@@ -34,24 +34,20 @@ app.layout = html.Div([
 
 # Importar módulo de secuencias
 try:
-    from modules.secuencias import layout as secuencias_layout
+        from modules.caja import layout as caja_layout
 except ImportError:
     secuencias_layout = html.Div([
         html.H3("🔢 Configuración de Secuencias"),
         html.P("Módulo cargado - Puedes configurar las secuencias aquí.")
     ])
-try:
-    from modules.secuencias import layout as secuencias_layout
-    from modules.caja import layout as caja_layout
-except ImportError as e:
-    print(f"⚠️ Error importando módulos: {e}")
+
 @app.callback(
     Output("page-content", "children"),
     [Input("url", "pathname")]
 )
 def display_page(pathname):
-    elif pathname == "/caja":
-    return caja_layout
+        elif pathname == "/caja":
+        return caja_layout
     else:
         return html.Div([
             html.H1("🏠 BS Dashboard"),
