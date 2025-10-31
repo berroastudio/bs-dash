@@ -14,7 +14,6 @@ class SequenceManager:
         """Asegura que exista el directorio data/"""
         if not os.path.exists(self.data_dir):
             os.makedirs(self.data_dir)
-            print(f"📁 Carpeta {self.data_dir} creada")
     
     def _load_sequences(self):
         """Carga las secuencias desde el archivo JSON o crea las predeterminadas"""
@@ -107,7 +106,7 @@ class SequenceManager:
         """Obtiene información de una secuencia específica"""
         return self.sequences.get(sequence_type)
 
-# ==================== PRUEBA COMPLETA ====================
+# Solo ejecutar pruebas si se llama directamente
 if __name__ == "__main__":
     print("\n" + "="*50)
     print("🚀 PRUEBA DEL SISTEMA DE SECUENCIAS")

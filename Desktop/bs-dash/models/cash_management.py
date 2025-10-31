@@ -2,8 +2,8 @@ import json
 import os
 from datetime import datetime
 
-# Import corregido - sin el punto
-from sequences import SequenceManager
+# Import corregido
+from .sequences import SequenceManager
 
 class CashManager:
     def __init__(self, data_dir="data"):
@@ -231,7 +231,7 @@ class CashManager:
         
         return today_logs
 
-# ==================== PRUEBA COMPLETA ====================
+# Solo ejecutar pruebas si se llama directamente
 if __name__ == "__main__":
     print("\n" + "="*60)
     print("🚀 PRUEBA DEL SISTEMA DE GESTIÓN DE CAJA")
