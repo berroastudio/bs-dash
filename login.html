@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BS Dash - Acceso Temporal</title>
+    <title>BS Dash - Acceso Temporal DEMO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
@@ -24,7 +24,7 @@
                 <i class="bi bi-lightning-charge-fill text-green-600 text-2xl"></i>
             </div>
             <h1 class="text-2xl font-bold text-gray-800">BS Dash</h1>
-            <p class="text-gray-600 mt-2">Acceso Temporal - Demo Rápido</p>
+            <p class="text-gray-600 mt-2">🔓 ACCESO TEMPORAL DEMO - Login Rápido</p>
         </div>
 
         <!-- Formulario Login Temporal -->
@@ -35,9 +35,9 @@
                 </label>
                 <select id="userSelect" class="bs-input w-full" required>
                     <option value="">Elige un perfil demo...</option>
-                    <option value="admin">👑 Administrador (Acceso Total)</option>
-                    <option value="vendedor">💼 Vendedor (Solo Ventas)</option>
-                    <option value="inventario">📦 Inventario (Solo Stock)</option>
+                    <option value="demo-admin@berroa.com">👑 demo-admin@berroa.com (Administrador)</option>
+                    <option value="demo-vendedor@berroa.com">💼 demo-vendedor@berroa.com (Vendedor)</option>
+                    <option value="demo-inventario@berroa.com">📦 demo-inventario@berroa.com (Inventario)</option>
                 </select>
             </div>
 
@@ -64,7 +64,7 @@
                 id="loginButton"
             >
                 <i class="bi bi-rocket-takeoff"></i>
-                Acceso Rápido
+                🚀 Acceso Rápido DEMO
             </button>
         </form>
 
@@ -72,7 +72,7 @@
         <div class="mt-6 space-y-3">
             <div class="p-3 bg-green-50 rounded-lg border border-green-200">
                 <p class="text-sm text-green-700 text-center">
-                    <strong>Acceso Demo Rápido</strong><br>
+                    <strong>🔓 ACCESO TEMPORAL DEMO</strong><br>
                     Contraseña: <strong>demo123</strong>
                 </p>
             </div>
@@ -88,28 +88,34 @@
     </div>
 
     <script>
-        // ==================== SISTEMA TEMPORAL SOLO DEMO ====================
+        // ==================== SISTEMA TEMPORAL DEMO - COMPATIBLE CON DASHBOARD ====================
         const USUARIOS_DEMO = {
-            'admin': {
+            'demo-admin@berroa.com': {
+                id: 1,
                 email: 'demo-admin@berroa.com',
                 nombre: 'Admin Demo',
-                role: 'admin',
+                rol: 'admin',
                 empresa_id: 1,
-                permisos: ['dashboard', 'pos', 'facturacion', 'cotizaciones', 'inventario', 'configuracion', 'reportes']
+                permisos: ['dashboard', 'pos', 'facturacion', 'cotizaciones', 'inventario', 'configuracion', 'reportes'],
+                esDemo: true
             },
-            'vendedor': {
+            'demo-vendedor@berroa.com': {
+                id: 2,
                 email: 'demo-vendedor@berroa.com', 
                 nombre: 'Vendedor Demo',
-                role: 'vendedor',
+                rol: 'vendedor',
                 empresa_id: 1,
-                permisos: ['dashboard', 'pos', 'facturacion', 'cotizaciones']
+                permisos: ['dashboard', 'pos', 'facturacion', 'cotizaciones'],
+                esDemo: true
             },
-            'inventario': {
+            'demo-inventario@berroa.com': {
+                id: 3,
                 email: 'demo-inventario@berroa.com',
                 nombre: 'Inventario Demo',
-                role: 'inventario', 
+                rol: 'inventario',
                 empresa_id: 1,
-                permisos: ['dashboard', 'inventario', 'reportes']
+                permisos: ['dashboard', 'inventario', 'reportes'],
+                esDemo: true
             }
         };
 
@@ -121,17 +127,17 @@
             const loginButton = document.getElementById('loginButton');
 
             // Configurar demo por defecto
-            userSelect.value = 'admin';
+            userSelect.value = 'demo-admin@berroa.com';
             passwordInput.value = 'demo123';
 
             loginForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
-                const usuario = userSelect.value;
+                const userEmail = userSelect.value;
                 const password = passwordInput.value.trim();
 
                 // Validaciones
-                if (!usuario) {
+                if (!userEmail) {
                     showStatus('❌ Selecciona un perfil demo', 'error');
                     return;
                 }
@@ -142,24 +148,48 @@
                 }
 
                 // Login exitoso
-                const userData = USUARIOS_DEMO[usuario];
+                const userData = USUARIOS_DEMO[userEmail];
                 
-                // Guardar sesión DEMO
+                if (!userData) {
+                    showStatus('❌ Usuario demo no encontrado', 'error');
+                    return;
+                }
+                
+                // ==================== SESIÓN COMPATIBLE CON DASHBOARD ====================
                 const sessionData = {
                     user: userData,
                     loginTime: new Date().getTime(),
                     expiresAt: new Date().getTime() + (2 * 60 * 60 * 1000), // 2 horas
-                    esDemo: true
+                    esDemo: true,
+                    token: 'demo-token-' + Date.now()
                 };
                 
+                console.log('🔐 GUARDANDO SESIÓN DEMO:', sessionData);
+                
+                // Guardar en localStorage
                 localStorage.setItem('bs_dash_auth', JSON.stringify(sessionData));
+                
+                // DEBUG: Verificar que se guardó
+                const saved = localStorage.getItem('bs_dash_auth');
+                console.log('💾 SESIÓN GUARDADA:', saved);
                 
                 showStatus('🎉 ¡Acceso demo concedido! Redirigiendo...', 'success');
                 
-                // Redirigir al dashboard
+                // ==================== REDIRECCIÓN ====================
                 setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 1000);
+                    console.log('🔄 Redirigiendo a dashboard...');
+                    const dashboardUrl = 'dashboard.html';
+                    
+                    // Verificar que la sesión se guardó correctamente
+                    const verifySession = localStorage.getItem('bs_dash_auth');
+                    if (!verifySession) {
+                        showStatus('❌ Error: Sesión no guardada', 'error');
+                        return;
+                    }
+                    
+                    console.log('✅ Sesión verificada, redirigiendo a:', dashboardUrl);
+                    window.location.href = dashboardUrl;
+                }, 1500);
             });
 
             function showStatus(mensaje, tipo) {
@@ -177,9 +207,11 @@
 
             // Enfocar en el select
             userSelect.focus();
+            
+            console.log('🚀 LOGIN TEMPORAL DEMO - Cargado correctamente');
         });
 
-        // ==================== COMPATIBILIDAD ====================
+        // ==================== COMPATIBILIDAD CON DASHBOARD ====================
         if (!window.auth) {
             window.auth = {
                 getCurrentUser: function() {
@@ -192,6 +224,19 @@
                     }
                 },
                 
+                getUser: function() {
+                    return this.getCurrentUser();
+                },
+                
+                requireAuth: function(redirectUrl) {
+                    const user = this.getCurrentUser();
+                    if (!user) {
+                        window.location.href = redirectUrl || 'login-temporal.html';
+                        return false;
+                    }
+                    return true;
+                },
+                
                 logout: function() {
                     localStorage.removeItem('bs_dash_auth');
                     window.location.href = 'login-temporal.html';
@@ -199,7 +244,7 @@
             };
         }
 
-        console.log('🚀 Login temporal demo cargado');
+        console.log('🔧 LOGIN TEMPORAL DEMO - Sistema configurado con emails');
     </script>
 </body>
 </html>
