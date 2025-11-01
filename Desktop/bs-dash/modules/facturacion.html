@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facturación - BS Dash</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body class="bg-[#fbfbfb] min-h-screen">
+    <header class="bs-card mx-4 mt-4 mb-6">
+        <div class="flex items-center justify-between p-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center border border-orange-200">
+                    <i class="bi bi-receipt text-orange-600"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-800">Sistema de Facturación</h1>
+                    <p class="text-sm text-gray-600">Gestión de facturas y comprobantes</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <a href="../dashboard.html" class="bs-btn bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200">
+                    <i class="bi bi-arrow-left"></i>
+                    Volver
+                </a>
+                <button onclick="nuevaFactura()" class="bs-btn bs-btn-primary">
+                    <i class="bi bi-plus"></i>
+                    Nueva Factura
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4">
+        <!-- Estadísticas Rápidas -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bs-stat-card p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Facturas Este Mes</p>
+                        <h3 class="text-2xl font-bold text-gray-800 mt-1" id="totalFacturasMes">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center border border-green-200">
+                        <i class="bi bi-receipt text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bs-stat-card p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Ingresos Mes</p>
+                        <h3 class="text-2xl font-bold text-gray-800 mt-1" id="ingresosMes">$0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center border border-blue-200">
+                        <i class="bi bi-currency-dollar text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bs-stat-card p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Pendientes</p>
+                        <h3 class="text-2xl font-bold text-gray-800 mt-1" id="facturasPendientes">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center border border-yellow-200">
+                        <i class="bi bi-clock text-yellow-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bs-stat-card p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Anuladas</p>
+                        <h3 class="text-2xl font-bold text-gray-800 mt-1" id="facturasAnuladas">0</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center border border-red-200">
+                        <i class="bi bi-x-circle text-red-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="bs-card p-6 mb-6">
+            <div class="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
+                <div class="flex flex-wrap gap-2">
+                    <select id="tipoComprobanteFilter" class="bs-select" onchange="cargarFacturas()">
+                        <option value="">Todos los tipos</option>
+                        <option value="factura">Facturas</option>
+                        <option value="credito">Notas de Crédito</option>
+                        <option value="debito">Notas de Débito</option>
+                    </select>
+                    <select id="estadoFacturaFilter" class="bs-select" onchange="cargarFacturas()">
+                        <option value="">Todos los estados</option>
+                        <option value="pagada">Pagadas</option>
+                        <option value="pendiente">Pendientes</option>
+                        <option value="anulada">Anuladas</option>
+                    </select>
+                    <input type="date" id="fechaDesdeFactura" class="bs-input" placeholder="Desde">
+                    <input type="date" id="fechaHastaFactura" class="bs-input" placeholder="Hasta">
+                </div>
+                
+                <div class="flex gap-2">
+                    <input type="text" id="searchFacturas" placeholder="Buscar..." class="bs-input">
+                    <button onclick="buscarFacturas()" class="bs-btn bg-gray-100 text-gray-700">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Facturas -->
+        <div class="bs-card p-6">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">N° Comprobante</th>
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Cliente</th>
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Fecha</th>
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Tipo</th>
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Total</th>
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Estado</th>
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaFacturas">
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="loadingFacturas" class="text-center py-8">
+                <p class="text-gray-500">Cargando facturas...</p>
+            </div>
+            
+            <div id="noFacturas" class="text-center py-8 hidden">
+                <p class="text-gray-500">No hay facturas registradas</p>
+                <button onclick="nuevaFactura()" class="bs-btn bs-btn-primary mt-4">
+                    <i class="bi bi-plus"></i> Crear Primera Factura
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Nueva Factura -->
+    <div id="modalFactura" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bs-card p-6 w-full max-w-6xl mx-4 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-bold mb-4" id="tituloModalFactura">Nueva Factura</h3>
+            
+            <form id="formFactura" class="space-y-6">
+                <!-- Información General -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo Comprobante *</label>
+                        <select id="facturaTipo" class="bs-input w-full" required>
+                            <option value="factura">Factura</option>
+                            <option value="credito">Nota de Crédito</option>
+                            <option value="debito">Nota de Débito</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Cliente *</label>
+                        <select id="facturaCliente" class="bs-input w-full" required>
+                            <option value="">Seleccionar cliente...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Fecha *</label>
+                        <input type="date" id="facturaFecha" class="bs-input w-full" required>
+                    </div>
+                </div>
+
+                <!-- Items de la Factura -->
+                <div>
+                    <h4 class="font-medium text-gray-800 mb-3">Productos/Servicios</h4>
+                    <div class="space-y-3" id="itemsFactura">
+                        <!-- Los items se agregarán aquí dinámicamente -->
+                    </div>
+                    <button type="button" onclick="agregarItemFactura()" class="bs-btn mt-3">
+                        <i class="bi bi-plus"></i> Agregar Producto
+                    </button>
+                </div>
+
+                <!-- Información de Pago -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-medium text-gray-800 mb-3">Información de Pago</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Método de Pago *</label>
+                                <select id="facturaMetodoPago" class="bs-input w-full" required>
+                                    <option value="">Seleccionar método...</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Estado de Pago</label>
+                                <select id="facturaEstadoPago" class="bs-input w-full">
+                                    <option value="pendiente">Pendiente</option>
+                                    <option value="pagada">Pagada</option>
+                                    <option value="parcial">Pago Parcial</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Totales -->
+                    <div>
+                        <h4 class="font-medium text-gray-800 mb-3">Totales</h4>
+                        <div class="space-y-2 max-w-md ml-auto">
+                            <div class="flex justify-between">
+                                <span>Subtotal:</span>
+                                <span class="font-semibold" id="subtotalFactura">$0.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Descuento:</span>
+                                <span class="font-semibold" id="descuentoFactura">$0.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>IVA (18%):</span>
+                                <span class="font-semibold" id="ivaFactura">$0.00</span>
+                            </div>
+                            <div class="flex justify-between border-t pt-2 text-lg font-bold">
+                                <span>Total:</span>
+                                <span id="totalFactura">$0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 justify-end pt-4">
+                    <button type="button" onclick="cerrarModalFactura()" class="bs-btn">Cancelar</button>
+                    <button type="button" onclick="guardarFactura()" class="bs-btn bg-blue-500 text-white hover:bg-blue-600">
+                        <i class="bi bi-save"></i> Guardar Borrador
+                    </button>
+                    <button type="submit" class="bs-btn bs-btn-primary">
+                        <i class="bi bi-check-lg"></i> Emitir Factura
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Ver Factura -->
+    <div id="modalVerFactura" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bs-card p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">Comprobante <span id="numeroFacturaVer"></span></h3>
+                <div class="flex gap-2">
+                    <button onclick="imprimirFactura()" class="bs-btn">
+                        <i class="bi bi-printer"></i> Imprimir
+                    </button>
+                    <button onclick="descargarFacturaPDF()" class="bs-btn">
+                        <i class="bi bi-download"></i> PDF
+                    </button>
+                    <button onclick="cerrarModalVerFactura()" class="bs-btn">
+                        <i class="bi bi-x"></i> Cerrar
+                    </button>
+                </div>
+            </div>
+            
+            <div id="contenidoFactura" class="bg-white p-8 border border-gray-300">
+                <!-- Contenido de la factura se generará aquí -->
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/facturacion.js"></script>
+</body>
+</html>

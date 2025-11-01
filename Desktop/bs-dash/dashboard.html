@@ -171,25 +171,25 @@
                         </div>
                     </a>
                     
-                    <!-- NUEVO: Módulo Contabilidad -->
-                    <a href="modules/contabilidad.html" class="bs-module-card flex items-center p-3">
+                    <!-- NUEVO: Módulo Cotizaciones -->
+                    <a href="modules/cotizaciones.html" class="bs-module-card flex items-center p-3">
                         <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3 border border-green-200">
-                            <i class="bi bi-calculator text-green-600"></i>
+                            <i class="bi bi-file-text text-green-600"></i>
                         </div>
                         <div>
-                            <h3 class="font-medium text-gray-800">Contabilidad</h3>
-                            <p class="text-xs text-gray-500">Gestión financiera y reportes</p>
+                            <h3 class="font-medium text-gray-800">Cotizaciones</h3>
+                            <p class="text-xs text-gray-500">Crear y gestionar cotizaciones</p>
                         </div>
                     </a>
                     
-                    <!-- NUEVO: Módulo Reportes -->
-                    <a href="modules/reportes.html" class="bs-module-card flex items-center p-3">
-                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3 border border-purple-200">
-                            <i class="bi bi-graph-up text-purple-600"></i>
+                    <!-- NUEVO: Módulo Facturación (CORREGIDO) -->
+                    <a href="modules/facturacion.html" class="bs-module-card flex items-center p-3">
+                        <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3 border border-orange-200">
+                            <i class="bi bi-receipt text-orange-600"></i>
                         </div>
                         <div>
-                            <h3 class="font-medium text-gray-800">Reportes</h3>
-                            <p class="text-xs text-gray-500">Análisis y exportación de datos</p>
+                            <h3 class="font-medium text-gray-800">Facturación</h3>
+                            <p class="text-xs text-gray-500">Gestión de facturas</p>
                         </div>
                     </a>
                     
@@ -203,20 +203,30 @@
                         </div>
                     </a>
                     
-                    <a href="#" class="bs-module-card flex items-center p-3">
-                        <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3 border border-orange-200">
-                            <i class="bi bi-credit-card text-orange-600"></i>
+                    <a href="modules/contabilidad.html" class="bs-module-card flex items-center p-3">
+                        <div class="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center mr-3 border border-teal-200">
+                            <i class="bi bi-calculator text-teal-600"></i>
                         </div>
                         <div>
-                            <h3 class="font-medium text-gray-800">Facturación</h3>
-                            <p class="text-xs text-gray-500">Gestión de facturas</p>
+                            <h3 class="font-medium text-gray-800">Contabilidad</h3>
+                            <p class="text-xs text-gray-500">Gestión financiera</p>
+                        </div>
+                    </a>
+                    
+                    <a href="modules/reportes.html" class="bs-module-card flex items-center p-3">
+                        <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center mr-3 border border-indigo-200">
+                            <i class="bi bi-graph-up text-indigo-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-gray-800">Reportes</h3>
+                            <p class="text-xs text-gray-500">Análisis y exportación</p>
                         </div>
                     </a>
                     
                     <!-- Módulo Configuración -->
                     <a href="modules/configuracion.html" class="bs-module-card flex items-center p-3">
-                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3 border border-purple-200">
-                            <i class="bi bi-gear text-purple-600"></i>
+                        <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-3 border border-gray-200">
+                            <i class="bi bi-gear text-gray-600"></i>
                         </div>
                         <div>
                             <h3 class="font-medium text-gray-800">Configuración</h3>
@@ -236,7 +246,10 @@
 
         // Mostrar información del usuario
         document.getElementById('userName').textContent = localStorage.getItem('userName') || 'John Berroa';
-        document.getElementById('empresaNombre').textContent = localStorage.getItem('empresaNombre') || 'Berroa Studio';
+        
+        // Cargar nombre de empresa desde configuración
+        const empresaConfig = JSON.parse(localStorage.getItem('bsdash_empresa') || '{}');
+        document.getElementById('empresaNombre').textContent = empresaConfig.nombre || 'Berroa Studio';
 
         // Función logout
         function logout() {
