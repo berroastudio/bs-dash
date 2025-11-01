@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Órdenes - BS Dash</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body class="bg-[#fbfbfb] min-h-screen">
+    <header class="bs-card mx-4 mt-4 mb-6">
+        <div class="flex items-center justify-between p-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center border border-blue-200">
+                    <i class="bi bi-clipboard-check text-blue-600"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-800">Gestión de Órdenes</h1>
+                    <p class="text-sm text-gray-600">Administra y sigue tus órdenes</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <a href="../dashboard.html" class="bs-btn bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200">
+                    <i class="bi bi-arrow-left"></i>
+                    Volver
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4">
+        <div class="bs-card p-6 mb-6">
+            <div class="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
+                <div class="flex flex-wrap gap-2">
+                    <button class="bs-btn bs-btn-primary" onclick="showNewOrderModal()">
+                        <i class="bi bi-plus"></i>
+                        Nueva Orden
+                    </button>
+                    <select id="statusFilter" class="bs-select" onchange="loadOrders()">
+                        <option value="">Todos los estados</option>
+                        <option value="pending">Pendientes</option>
+                        <option value="confirmed">Confirmadas</option>
+                        <option value="processing">En proceso</option>
+                        <option value="completed">Completadas</option>
+                        <option value="cancelled">Canceladas</option>
+                    </select>
+                </div>
+                
+                <div class="flex gap-2">
+                    <input type="text" id="searchOrders" placeholder="Buscar órdenes..." class="bs-input">
+                    <button class="bs-btn bg-gray-100 text-gray-700">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bs-card p-6">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">N° Orden</th>
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Cliente</th>
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Total</th>
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Estado</th>
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Fecha</th>
+                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody">
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="loadingOrders" class="text-center py-8">
+                <p class="text-gray-500">Cargando órdenes...</p>
+            </div>
+            
+            <div id="noOrders" class="text-center py-8 hidden">
+                <p class="text-gray-500">No hay órdenes registradas</p>
+            </div>
+        </div>
+    </main>
+
+    <div id="newOrderModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bs-card p-6 m-4 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-bold mb-4">Nueva Orden</h3>
+            <form id="newOrderForm" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Cliente</label>
+                        <input type="text" name="customer_name" class="bs-input w-full" placeholder="Nombre del cliente" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono</label>
+                        <input type="tel" name="customer_phone" class="bs-input w-full" placeholder="Teléfono">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Notas</label>
+                    <textarea name="notes" class="bs-input w-full" rows="3" placeholder="Notas adicionales..."></textarea>
+                </div>
+                
+                <div class="flex gap-2 justify-end">
+                    <button type="button" onclick="hideNewOrderModal()" class="bs-btn bg-gray-100 text-gray-700">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="bs-btn bs-btn-primary">
+                        Crear Orden
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="ordenes.js"></script>
+</body>
+</html>
