@@ -1,1 +1,205 @@
-x
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BS Dash - Acceso Temporal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        .bs-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; }
+        .bs-btn { padding: 10px 16px; border-radius: 8px; font-weight: 500; border: 1px solid #d1d5db; background: white; cursor: pointer; transition: all 0.2s; }
+        .bs-btn:hover { background: #f9fafb; }
+        .bs-btn-primary { background: #3b82f6; color: white; border-color: #3b82f6; }
+        .bs-btn-primary:hover { background: #2563eb; }
+        .bs-input { padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; width: 100%; transition: all 0.2s; }
+        .bs-input:focus { outline: none; ring: 2px; ring-color: #3b82f6; border-color: #3b82f6; }
+    </style>
+</head>
+<body class="bg-[#fbfbfb] min-h-screen flex items-center justify-center p-4">
+    <div class="bs-card p-8 w-full max-w-md">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-green-200">
+                <i class="bi bi-lightning-charge-fill text-green-600 text-2xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800">BS Dash</h1>
+            <p class="text-gray-600 mt-2">Acceso Temporal - Demo Rápido</p>
+        </div>
+
+        <!-- Formulario Login Temporal -->
+        <form id="loginForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="bi bi-person-badge mr-2"></i>Selecciona perfil demo
+                </label>
+                <select id="userSelect" class="bs-input w-full" required>
+                    <option value="">Elige un perfil demo...</option>
+                    <option value="admin">👑 Administrador (Acceso Total)</option>
+                    <option value="vendedor">💼 Vendedor (Solo Ventas)</option>
+                    <option value="inventario">📦 Inventario (Solo Stock)</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="bi bi-key mr-2"></i>Contraseña demo
+                </label>
+                <input 
+                    type="password" 
+                    id="password"
+                    class="bs-input w-full"
+                    placeholder="Usar: demo123"
+                    value="demo123"
+                    required
+                >
+            </div>
+
+            <!-- Mensaje de estado -->
+            <div id="statusMsg" class="hidden p-3 rounded-lg text-center text-sm"></div>
+
+            <button 
+                type="submit"
+                class="w-full bs-btn-primary py-3 rounded-lg font-semibold transition-all mt-4"
+                id="loginButton"
+            >
+                <i class="bi bi-rocket-takeoff"></i>
+                Acceso Rápido
+            </button>
+        </form>
+
+        <!-- Información demo -->
+        <div class="mt-6 space-y-3">
+            <div class="p-3 bg-green-50 rounded-lg border border-green-200">
+                <p class="text-sm text-green-700 text-center">
+                    <strong>Acceso Demo Rápido</strong><br>
+                    Contraseña: <strong>demo123</strong>
+                </p>
+            </div>
+            
+            <div class="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <p class="text-xs text-blue-600 text-center">
+                    <i class="bi bi-info-circle mr-1"></i>
+                    Para acceso completo usa: 
+                    <a href="login.html" class="underline font-medium">Login Principal</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== SISTEMA TEMPORAL SOLO DEMO ====================
+        const USUARIOS_DEMO = {
+            'admin': {
+                email: 'demo-admin@berroa.com',
+                nombre: 'Admin Demo',
+                role: 'admin',
+                empresa_id: 1,
+                permisos: ['dashboard', 'pos', 'facturacion', 'cotizaciones', 'inventario', 'configuracion', 'reportes']
+            },
+            'vendedor': {
+                email: 'demo-vendedor@berroa.com', 
+                nombre: 'Vendedor Demo',
+                role: 'vendedor',
+                empresa_id: 1,
+                permisos: ['dashboard', 'pos', 'facturacion', 'cotizaciones']
+            },
+            'inventario': {
+                email: 'demo-inventario@berroa.com',
+                nombre: 'Inventario Demo',
+                role: 'inventario', 
+                empresa_id: 1,
+                permisos: ['dashboard', 'inventario', 'reportes']
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('loginForm');
+            const userSelect = document.getElementById('userSelect');
+            const passwordInput = document.getElementById('password');
+            const statusMsg = document.getElementById('statusMsg');
+            const loginButton = document.getElementById('loginButton');
+
+            // Configurar demo por defecto
+            userSelect.value = 'admin';
+            passwordInput.value = 'demo123';
+
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const usuario = userSelect.value;
+                const password = passwordInput.value.trim();
+
+                // Validaciones
+                if (!usuario) {
+                    showStatus('❌ Selecciona un perfil demo', 'error');
+                    return;
+                }
+
+                if (password !== 'demo123') {
+                    showStatus('❌ Contraseña demo: demo123', 'error');
+                    return;
+                }
+
+                // Login exitoso
+                const userData = USUARIOS_DEMO[usuario];
+                
+                // Guardar sesión DEMO
+                const sessionData = {
+                    user: userData,
+                    loginTime: new Date().getTime(),
+                    expiresAt: new Date().getTime() + (2 * 60 * 60 * 1000), // 2 horas
+                    esDemo: true
+                };
+                
+                localStorage.setItem('bs_dash_auth', JSON.stringify(sessionData));
+                
+                showStatus('🎉 ¡Acceso demo concedido! Redirigiendo...', 'success');
+                
+                // Redirigir al dashboard
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1000);
+            });
+
+            function showStatus(mensaje, tipo) {
+                statusMsg.textContent = mensaje;
+                statusMsg.className = `p-3 rounded-lg text-center text-sm `;
+                
+                if (tipo === 'error') {
+                    statusMsg.classList.add('bg-red-50', 'text-red-700', 'border', 'border-red-200');
+                } else if (tipo === 'success') {
+                    statusMsg.classList.add('bg-green-50', 'text-green-700', 'border', 'border-green-200');
+                }
+                
+                statusMsg.classList.remove('hidden');
+            }
+
+            // Enfocar en el select
+            userSelect.focus();
+        });
+
+        // ==================== COMPATIBILIDAD ====================
+        if (!window.auth) {
+            window.auth = {
+                getCurrentUser: function() {
+                    try {
+                        const session = localStorage.getItem('bs_dash_auth');
+                        if (!session) return null;
+                        return JSON.parse(session).user;
+                    } catch (error) {
+                        return null;
+                    }
+                },
+                
+                logout: function() {
+                    localStorage.removeItem('bs_dash_auth');
+                    window.location.href = 'login-temporal.html';
+                }
+            };
+        }
+
+        console.log('🚀 Login temporal demo cargado');
+    </script>
+</body>
+</html>
