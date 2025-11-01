@@ -1,0 +1,17 @@
+# Archivos sensibles - NO SUBIR A GITHUB
+config.js
+*.encrypted
+backup-*
+.env
+secrets.json
+database.json
+*.log
+temp/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de IDE
+.vscode/
+.idea/

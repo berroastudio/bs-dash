@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BS Dash - Punto de Venta</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body class="bg-[#fbfbfb] min-h-screen">
+    <header class="bs-card mx-4 mt-4 mb-6">
+        <div class="flex items-center justify-between p-4">
+            <div class="flex items-center gap-4">
+                <a href="../dashboard.html" class="bs-btn">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center border border-green-200">
+                        <i class="bi bi-cash-coin text-green-600"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-800">Punto de Venta</h1>
+                        <p class="text-sm text-gray-600" id="fechaHora"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <span class="text-gray-700" id="userName">John Berroa</span>
+                <button onclick="logout()" class="bs-btn bg-red-50 text-red-600 border-red-200">
+                    <i class="bi bi-box-arrow-right"></i> Salir
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Panel de Búsqueda y Productos -->
+            <div class="lg:col-span-2">
+                <div class="bs-card p-6 mb-6">
+                    <!-- Información de la Venta -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <!-- Cliente con Búsqueda Live -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Cliente</label>
+                            <div class="relative">
+                                <input type="text" id="buscarCliente" placeholder="Buscar cliente por nombre, RUC o teléfono..." 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                                       onkeyup="buscarClientesLive()">
+                                <div id="resultadosClientes" class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg hidden max-h-60 overflow-y-auto"></div>
+                            </div>
+                            <button onclick="abrirModalCliente()" class="bs-btn mt-2 w-full">
+                                <i class="bi bi-person-plus"></i> Agregar Nuevo Cliente
+                            </button>
+                        </div>
+                        
+                        <!-- Tipo de Facturación -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Documento</label>
+                            <select id="selectTipoFacturacion" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                                <option value="Factura">Factura</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Método de Pago -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Método de Pago</label>
+                            <select id="selectMetodoPago" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                                <option value="Efectivo">Efectivo</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Búsqueda -->
+                    <div class="flex gap-4 mb-4">
+                        <input type="text" id="buscarProducto" placeholder="Buscar producto por nombre o código..." 
+                               class="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
+                               onkeyup="buscarProductos()">
+                        <button onclick="buscarProductos()" class="bs-btn">
+                            <i class="bi bi-search"></i> Buscar
+                        </button>
+                    </div>
+                    
+                    <!-- Lista de Productos -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="listaProductos">
+                        <!-- Productos se cargan aquí con JavaScript -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Carrito de Compras -->
+            <div class="bs-card p-6">
+                <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                    <i class="bi bi-cart"></i> Carrito de Venta
+                </h2>
+                
+                <!-- Descuento -->
+                <div class="mb-4" id="descuentoContainer" style="display: none;">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Descuento (%)</label>
+                    <input type="number" id="descuento" value="0" min="0" max="100" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg" 
+                           onchange="actualizarTotales()">
+                </div>
+                
+                <!-- Items del Carrito -->
+                <div id="carrito" class="mb-4 max-h-96 overflow-y-auto">
+                    <p class="text-gray-500 text-center py-8">El carrito está vacío</p>
+                </div>
+                
+                <!-- Totales -->
+                <div class="border-t pt-4 space-y-3">
+                    <div class="flex justify-between">
+                        <span class="font-medium">Subtotal:</span>
+                        <span id="subtotal">$0.00</span>
+                    </div>
+                    
+                    <div id="descuentoLinea" class="flex justify-between text-red-600" style="display: none;">
+                        <span class="font-medium">Descuento:</span>
+                        <span id="montoDescuento">-$0.00</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="font-medium">IVA (<span id="ivaPorcentaje">12</span>%):</span>
+                        <span id="iva">$0.00</span>
+                    </div>
+                    
+                    <div class="flex justify-between text-lg font-bold border-t pt-2">
+                        <span>Total:</span>
+                        <span id="total">$0.00</span>
+                    </div>
+                    
+                    <!-- Botones de Acción -->
+                    <div class="flex gap-2 mt-4">
+                        <button onclick="limpiarCarrito()" class="bs-btn flex-1">
+                            <i class="bi bi-trash"></i> Limpiar
+                        </button>
+                        <button onclick="procesarVenta()" class="bs-btn bs-btn-primary flex-1">
+                            <i class="bi bi-credit-card"></i> Cobrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Agregar Cliente Rápido -->
+    <div id="modalCliente" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bs-card p-6 w-full max-w-md mx-4">
+            <h3 class="text-xl font-bold mb-4">Agregar Cliente Rápido</h3>
+            
+            <form id="formCliente" class="space-y-4" onsubmit="guardarClienteRapido(event)">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nombre/Razón Social *</label>
+                    <input type="text" id="clienteNombre" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">RUC/Cédula *</label>
+                        <input type="text" id="clienteRuc" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono</label>
+                        <input type="text" id="clienteTelefono" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input type="email" id="clienteEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">WhatsApp</label>
+                    <input type="text" id="clienteWhatsapp" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                </div>
+                
+                <div class="flex justify-end gap-3 pt-4">
+                    <button type="button" onclick="cerrarModalCliente()" class="bs-btn">Cancelar</button>
+                    <button type="submit" class="bs-btn bs-btn-primary">Guardar Cliente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/database.js"></script>
+    <script>
+        // Verificar autenticación
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = '../index.html';
+        }
+
+        // Mostrar información
+        document.getElementById('userName').textContent = localStorage.getItem('userName') || 'John Berroa';
+        
+        // Actualizar fecha y hora
+        function actualizarFechaHora() {
+            const ahora = new Date();
+            document.getElementById('fechaHora').textContent = 
+                ahora.toLocaleDateString('es-ES') + ' ' + ahora.toLocaleTimeString('es-ES');
+        }
+        setInterval(actualizarFechaHora, 1000);
+        actualizarFechaHora();
+
+        // Variables globales
+        let carrito = [];
+        let configuracion = {};
+
+        // Cargar configuración y datos al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarConfiguracion();
+            cargarMetodosPago();
+            cargarTiposFacturacion();
+            cargarProductos();
+        });
+
+        // Búsqueda Live de Clientes
+        function buscarClientesLive() {
+            const termino = document.getElementById('buscarCliente').value.toLowerCase();
+            const resultados = document.getElementById('resultadosClientes');
+            
+            if (termino.length < 2) {
+                resultados.classList.add('hidden');
+                return;
+            }
+            
+            const clientes = db.getClientes();
+            const clientesFiltrados = clientes.filter(cliente => 
+                cliente.nombre.toLowerCase().includes(termino) ||
+                cliente.ruc_ci.toLowerCase().includes(termino) ||
+                (cliente.telefono && cliente.telefono.includes(termino))
+            );
+            
+            if (clientesFiltrados.length === 0) {
+                resultados.innerHTML = `
+                    <div class="p-3 text-gray-500 text-center">
+                        No se encontraron clientes
+                        <button onclick="abrirModalCliente()" class="bs-btn bs-btn-primary mt-2 w-full text-sm">
+                            <i class="bi bi-person-plus"></i> Agregar Nuevo Cliente
+                        </button>
+                    </div>
+                `;
+            } else {
+                let html = '';
+                clientesFiltrados.forEach(cliente => {
+                    html += `
+                        <div class="p-3 border-b border-gray-200 hover:bg-gray-50 cursor-pointer" 
+                             onclick="seleccionarCliente(${cliente.id}, '${cliente.nombre.replace(/'/g, "\\'")}')">
+                            <div class="font-medium">${cliente.nombre}</div>
+                            <div class="text-sm text-gray-500">${cliente.ruc_ci} | ${cliente.telefono || 'Sin teléfono'}</div>
+                        </div>
+                    `;
+                });
+                resultados.innerHTML = html;
+            }
+            
+            resultados.classList.remove('hidden');
+        }
+
+        function seleccionarCliente(clienteId, clienteNombre) {
+            document.getElementById('buscarCliente').value = clienteNombre;
+            document.getElementById('resultadosClientes').classList.add('hidden');
+            document.getElementById('buscarCliente').dataset.clienteId = clienteId;
+        }
+
+        // Modal para agregar cliente rápido
+        function abrirModalCliente() {
+            document.getElementById('modalCliente').classList.remove('hidden');
+            document.getElementById('modalCliente').classList.add('flex');
+            document.getElementById('clienteNombre').focus();
+        }
+
+        function cerrarModalCliente() {
+            document.getElementById('modalCliente').classList.add('hidden');
+            document.getElementById('modalCliente').classList.remove('flex');
+            document.getElementById('formCliente').reset();
+        }
+
+        function guardarClienteRapido(event) {
+            event.preventDefault();
+            
+            const cliente = {
+                codigo: 'CLI' + Date.now().toString().slice(-6),
+                nombre: document.getElementById('clienteNombre').value,
+                ruc_ci: document.getElementById('clienteRuc').value,
+                telefono: document.getElementById('clienteTelefono').value,
+                email: document.getElementById('clienteEmail').value,
+                whatsapp: document.getElementById('clienteWhatsapp').value
+            };
+            
+            const nuevoCliente = db.addCliente(cliente);
+            seleccionarCliente(nuevoCliente.id, nuevoCliente.nombre);
+            cerrarModalCliente();
+            alert('✅ Cliente agregado exitosamente');
+        }
+
+        function cargarConfiguracion() {
+            configuracion = JSON.parse(localStorage.getItem('bsdash_configuracion') || '{}');
+            
+            const descuentoContainer = document.getElementById('descuentoContainer');
+            if (configuracion.habilitarDescuentos) {
+                descuentoContainer.style.display = 'block';
+            }
+            
+            document.getElementById('ivaPorcentaje').textContent = configuracion.ivaPorDefecto || 12;
+        }
+
+        function cargarMetodosPago() {
+            const metodosPago = JSON.parse(localStorage.getItem('bsdash_metodosPago') || '["Efectivo", "Tarjeta Débito", "Tarjeta Crédito", "Transferencia"]');
+            const select = document.getElementById('selectMetodoPago');
+            select.innerHTML = '';
+            
+            metodosPago.forEach(metodo => {
+                const option = document.createElement('option');
+                option.value = metodo;
+                option.textContent = metodo;
+                select.appendChild(option);
+            });
+        }
+
+        function cargarTiposFacturacion() {
+            const tiposFacturacion = JSON.parse(localStorage.getItem('bsdash_tiposFacturacion') || '["Factura", "Boleta de Venta", "Liquidación de Compra"]');
+            const select = document.getElementById('selectTipoFacturacion');
+            select.innerHTML = '';
+            
+            tiposFacturacion.forEach(tipo => {
+                const option = document.createElement('option');
+                option.value = tipo;
+                option.textContent = tipo;
+                select.appendChild(option);
+            });
+        }
+
+        function cargarProductos() {
+            const productos = db.getProductos();
+            const lista = document.getElementById('listaProductos');
+            lista.innerHTML = '';
+
+            productos.forEach(producto => {
+                if (producto.activo && producto.stock > 0) {
+                    const productoHTML = `
+                        <div class="bs-module-card p-4 hover-lift">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h3 class="font-medium text-gray-800">${producto.nombre}</h3>
+                                    <p class="text-sm text-gray-500">${producto.codigo}</p>
+                                </div>
+                                <span class="text-green-600 font-bold">$${producto.precio_venta}</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mb-3">${producto.descripcion || 'Sin descripción'}</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm ${producto.stock <= producto.stock_minimo ? 'text-red-500' : 'text-green-500'}">
+                                    Stock: ${producto.stock}
+                                </span>
+                                <button onclick="agregarAlCarrito(${producto.id})" 
+                                        class="bs-btn bs-btn-primary text-sm">
+                                    <i class="bi bi-plus"></i> Agregar
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    lista.innerHTML += productoHTML;
+                }
+            });
+        }
+
+        function buscarProductos() {
+            const termino = document.getElementById('buscarProducto').value.toLowerCase();
+            const productos = db.getProductos();
+            const lista = document.getElementById('listaProductos');
+            lista.innerHTML = '';
+
+            const productosFiltrados = productos.filter(producto => 
+                producto.activo && 
+                producto.stock > 0 &&
+                (producto.nombre.toLowerCase().includes(termino) || 
+                 producto.codigo.toLowerCase().includes(termino) ||
+                 producto.categoria.toLowerCase().includes(termino))
+            );
+
+            if (productosFiltrados.length === 0) {
+                lista.innerHTML = '<p class="text-gray-500 text-center col-span-2 py-8">No se encontraron productos</p>';
+                return;
+            }
+
+            productosFiltrados.forEach(producto => {
+                const productoHTML = `
+                    <div class="bs-module-card p-4 hover-lift">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="font-medium text-gray-800">${producto.nombre}</h3>
+                                <p class="text-sm text-gray-500">${producto.codigo}</p>
+                            </div>
+                            <span class="text-green-600 font-bold">$${producto.precio_venta}</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-3">${producto.descripcion || 'Sin descripción'}</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm ${producto.stock <= producto.stock_minimo ? 'text-red-500' : 'text-green-500'}">
+                                Stock: ${producto.stock}
+                            </span>
+                            <button onclick="agregarAlCarrito(${producto.id})" 
+                                    class="bs-btn bs-btn-primary text-sm">
+                                <i class="bi bi-plus"></i> Agregar
+                            </button>
+                        </div>
+                    </div>
+                `;
+                lista.innerHTML += productoHTML;
+            });
+        }
+
+        function agregarAlCarrito(productoId) {
+            const productos = db.getProductos();
+            const producto = productos.find(p => p.id === productoId);
+            
+            if (!producto) return;
+
+            const itemExistente = carrito.find(item => item.id === productoId);
+            
+            if (itemExistente) {
+                if (itemExistente.cantidad < producto.stock) {
+                    itemExistente.cantidad++;
+                } else {
+                    alert('No hay suficiente stock disponible');
+                    return;
+                }
+            } else {
+                carrito.push({
+                    id: producto.id,
+                    codigo: producto.codigo,
+                    nombre: producto.nombre,
+                    precio: producto.precio_venta,
+                    cantidad: 1,
+                    stock: producto.stock
+                });
+            }
+
+            actualizarCarrito();
+        }
+
+        function actualizarCarrito() {
+            const carritoDiv = document.getElementById('carrito');
+            
+            if (carrito.length === 0) {
+                carritoDiv.innerHTML = '<p class="text-gray-500 text-center py-8">El carrito está vacío</p>';
+                actualizarTotales();
+                return;
+            }
+
+            let html = '';
+            carrito.forEach((item, index) => {
+                const subtotal = item.precio * item.cantidad;
+                html += `
+                    <div class="flex items-center justify-between p-3 border-b border-gray-200">
+                        <div class="flex-1">
+                            <div class="font-medium">${item.nombre}</div>
+                            <div class="text-sm text-gray-500">${item.codigo} - $${item.precio} c/u</div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="modificarCantidad(${index}, -1)" class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
+                                <i class="bi bi-dash text-xs"></i>
+                            </button>
+                            <span class="w-8 text-center">${item.cantidad}</span>
+                            <button onclick="modificarCantidad(${index}, 1)" class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
+                                <i class="bi bi-plus text-xs"></i>
+                            </button>
+                            <span class="w-16 text-right font-medium">$${subtotal.toFixed(2)}</span>
+                            <button onclick="eliminarDelCarrito(${index})" class="text-red-500 ml-2">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            carritoDiv.innerHTML = html;
+            actualizarTotales();
+        }
+
+        function modificarCantidad(index, cambio) {
+            const item = carrito[index];
+            const nuevaCantidad = item.cantidad + cambio;
+
+            if (nuevaCantidad < 1) {
+                eliminarDelCarrito(index);
+                return;
+            }
+
+            if (nuevaCantidad > item.stock) {
+                alert('No hay suficiente stock disponible');
+                return;
+            }
+
+            item.cantidad = nuevaCantidad;
+            actualizarCarrito();
+        }
+
+        function eliminarDelCarrito(index) {
+            carrito.splice(index, 1);
+            actualizarCarrito();
+        }
+
+        function limpiarCarrito() {
+            if (carrito.length === 0) return;
+            
+            if (confirm('¿Estás seguro de que deseas limpiar el carrito?')) {
+                carrito = [];
+                actualizarCarrito();
+            }
+        }
+
+        function actualizarTotales() {
+            const subtotal = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+            const descuentoPorcentaje = parseFloat(document.getElementById('descuento').value) || 0;
+            const descuentoMonto = subtotal * (descuentoPorcentaje / 100);
+            const subtotalConDescuento = subtotal - descuentoMonto;
+            const ivaPorcentaje = configuracion.ivaPorDefecto || 12;
+            const iva = subtotalConDescuento * (ivaPorcentaje / 100);
+            const total = subtotalConDescuento + iva;
+
+            document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+            document.getElementById('iva').textContent = `$${iva.toFixed(2)}`;
+            document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+
+            const descuentoLinea = document.getElementById('descuentoLinea');
+            if (descuentoPorcentaje > 0) {
+                descuentoLinea.style.display = 'flex';
+                document.getElementById('montoDescuento').textContent = `-$${descuentoMonto.toFixed(2)}`;
+            } else {
+                descuentoLinea.style.display = 'none';
+            }
+        }
+
+        function procesarVenta() {
+            if (carrito.length === 0) {
+                alert('El carrito está vacío');
+                return;
+            }
+
+            const clienteId = document.getElementById('buscarCliente').dataset.clienteId || '';
+            const metodoPago = document.getElementById('selectMetodoPago').value;
+            const tipoFacturacion = document.getElementById('selectTipoFacturacion').value;
+            const descuento = parseFloat(document.getElementById('descuento').value) || 0;
+
+            // Calcular totales finales
+            const subtotal = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+            const descuentoMonto = subtotal * (descuento / 100);
+            const subtotalConDescuento = subtotal - descuentoMonto;
+            const ivaPorcentaje = configuracion.ivaPorDefecto || 12;
+            const iva = subtotalConDescuento * (ivaPorcentaje / 100);
+            const total = subtotalConDescuento + iva;
+
+            // Obtener información del cliente
+            let clienteInfo = 'Consumidor Final';
+            if (clienteId) {
+                const clientes = db.getClientes();
+                const cliente = clientes.find(c => c.id == clienteId);
+                if (cliente) {
+                    clienteInfo = `${cliente.nombre} (${cliente.ruc_ci})`;
+                }
+            }
+
+            // Actualizar stock en la base de datos
+            const productos = db.getProductos();
+            carrito.forEach(itemCarrito => {
+                const producto = productos.find(p => p.id === itemCarrito.id);
+                if (producto) {
+                    producto.stock -= itemCarrito.cantidad;
+                }
+            });
+
+            db.set('productos', productos);
+
+            // Mostrar resumen de venta
+            const resumen = `
+✅ VENTA PROCESADA EXITOSAMENTE
+
+Cliente: ${clienteInfo}
+Tipo: ${tipoFacturacion}
+Método de Pago: ${metodoPago}
+${descuento > 0 ? `Descuento: ${descuento}%` : ''}
+
+Total: $${total.toFixed(2)}
+
+Stock actualizado correctamente
+            `;
+
+            alert(resumen);
+
+            // Limpiar carrito y recargar productos
+            carrito = [];
+            document.getElementById('descuento').value = 0;
+            document.getElementById('buscarCliente').value = '';
+            delete document.getElementById('buscarCliente').dataset.clienteId;
+            actualizarCarrito();
+            cargarProductos();
+        }
+
+        function logout() {
+            if(confirm("¿Estás seguro de que deseas cerrar sesión?")) {
+                localStorage.clear();
+                window.location.href = '../index.html';
+            }
+        }
+    </script>
+</body>
+</html>
