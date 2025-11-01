@@ -1,26 +1,52 @@
-// Sistema multiempresa para el dashboard
+// js/empresa-context.js - ACTUALIZADO
 class EmpresaManager {
     constructor() {
-        this.empresaActual = localStorage.getItem('empresaActual') || '1';
-        this.empresas = [
-            { id: '1', nombre: 'Empresa Principal', color: '#3B82F6' },
-            { id: '2', nombre: 'Empresa Secundaria', color: '#10B981' },
-            { id: '3', nombre: 'Empresa Tres', color: '#8B5CF6' }
-        ];
-        
+        this.empresaActual = localStorage.getItem('empresaActual') || window.CONFIG.DEFAULT_EMPRESA.toString();
         this.init();
     }
 
-    init() {
+    async init() {
+        // Esperar a que la base de datos esté lista
+        await this.cargarEmpresas();
         this.setupSwitcher();
         this.actualizarUI();
         this.cargarDatosEmpresa();
     }
 
+    async cargarEmpresas() {
+        this.empresas = window.dbManager.getEmpresas();
+        
+        // Si no hay empresas, crear la predeterminada
+        if (this.empresas.length === 0) {
+            console.log('🏢 Creando empresa predeterminada...');
+            await window.dbManager.crearEmpresa(
+                'Empresa Principal',
+                'J-123456789',
+                'Caracas, Venezuela',
+                '+584123456789',
+                '#3B82F6'
+            );
+            this.empresas = window.dbManager.getEmpresas();
+        }
+    }
+
     setupSwitcher() {
         const switcher = document.getElementById('empresaSwitcher');
         if (switcher) {
-            switcher.value = this.empresaActual;
+            // Limpiar opciones existentes
+            switcher.innerHTML = '';
+            
+            // Agregar empresas desde la base de datos
+            this.empresas.forEach(empresa => {
+                const option = document.createElement('option');
+                option.value = empresa.id;
+                option.textContent = empresa.nombre;
+                if (empresa.id.toString() === this.empresaActual) {
+                    option.selected = true;
+                }
+                switcher.appendChild(option);
+            });
+            
             switcher.addEventListener('change', (e) => {
                 this.cambiarEmpresa(e.target.value);
             });
@@ -37,11 +63,12 @@ class EmpresaManager {
     }
 
     getEmpresaActual() {
-        return this.empresas.find(e => e.id === this.empresaActual) || this.empresas[0];
+        return window.dbManager.getEmpresa(this.empresaActual) || this.empresas[0];
     }
 
     actualizarUI() {
         const empresa = this.getEmpresaActual();
+        if (!empresa) return;
         
         // Actualizar indicador
         const indicador = document.getElementById('empresaIndicador');
@@ -50,36 +77,80 @@ class EmpresaManager {
             indicador.style.backgroundColor = empresa.color;
         }
 
+        // Actualizar nombre de empresa en el dashboard
+        const empresaNombre = document.getElementById('empresaNombre');
+        if (empresaNombre) {
+            empresaNombre.textContent = empresa.nombre;
+        }
+
         // Actualizar color del tema
         document.documentElement.style.setProperty('--empresa-color', empresa.color);
     }
 
     cargarDatosEmpresa() {
-        console.log(`📊 Cargando datos para: ${this.getEmpresaActual().nombre}`);
+        console.log(`📊 Cargando datos para: ${this.getEmpresaActual()?.nombre}`);
         this.actualizarEstadisticas();
     }
 
     actualizarEstadisticas() {
-        // Datos diferentes por empresa
-        const datosPorEmpresa = {
-            '1': { ventas: 15000, clientes: 45, crecimiento: 12 },
-            '2': { ventas: 8500, clientes: 28, crecimiento: 8 },
-            '3': { ventas: 22000, clientes: 67, crecimiento: 15 }
-        };
+        const stats = window.dbManager.getEstadisticas(this.empresaActual);
         
-        const datos = datosPorEmpresa[this.empresaActual];
-        
-        // Actualizar elementos en el dashboard
-        const elementosVentas = document.querySelectorAll('[data-ventas]');
-        elementosVentas.forEach(el => {
-            el.textContent = `$${datos.ventas.toLocaleString()}`;
+        // Actualizar tarjetas del dashboard
+        this.actualizarTarjetaVentas(stats.ventas);
+        this.actualizarTarjetaProductos(stats.productos, stats.productosBajoStock);
+        this.actualizarTarjetaOrdenes(stats.ordenesPendientes);
+        this.actualizarTarjetaClientes(stats.clientes);
+    }
+
+    actualizarTarjetaVentas(ventas) {
+        const elementos = document.querySelectorAll('[data-ventas]');
+        elementos.forEach(el => {
+            el.textContent = `$${ventas.toLocaleString()}`;
+        });
+    }
+
+    actualizarTarjetaProductos(total, bajosStock) {
+        const elementos = document.querySelectorAll('.bs-stat-card');
+        elementos.forEach(el => {
+            if (el.textContent.includes('Productos Stock')) {
+                const h3 = el.querySelector('h3');
+                if (h3) h3.textContent = total.toLocaleString();
+                
+                const stockBajo = el.querySelector('.text-xs');
+                if (stockBajo && stockBajo.textContent.includes('bajos')) {
+                    stockBajo.innerHTML = `<i class="bi bi-exclamation-triangle"></i> ${bajosStock} bajos`;
+                }
+            }
+        });
+    }
+
+    actualizarTarjetaOrdenes(ordenesPendientes) {
+        const elementos = document.querySelectorAll('.bs-stat-card');
+        elementos.forEach(el => {
+            if (el.textContent.includes('Órdenes Pendientes')) {
+                const h3 = el.querySelector('h3');
+                if (h3) h3.textContent = ordenesPendientes;
+            }
+        });
+    }
+
+    actualizarTarjetaClientes(clientes) {
+        const elementos = document.querySelectorAll('.bs-stat-card');
+        elementos.forEach(el => {
+            if (el.textContent.includes('Clientes Activos')) {
+                const h3 = el.querySelector('h3');
+                if (h3) h3.textContent = clientes;
+            }
         });
     }
 
     mostrarNotificacionCambio() {
+        const empresa = this.getEmpresaActual();
+        if (!empresa) return;
+
         const notificacion = document.createElement('div');
         notificacion.className = 'empresa-notificacion';
-        notificacion.innerHTML = `✅ Cambiado a: <strong>${this.getEmpresaActual().nombre}</strong>`;
+        notificacion.innerHTML = `✅ Cambiado a: <strong>${empresa.nombre}</strong>`;
         
         Object.assign(notificacion.style, {
             position: 'fixed',
@@ -89,7 +160,9 @@ class EmpresaManager {
             color: 'white',
             padding: '12px 20px',
             borderRadius: '8px',
-            zIndex: '1000'
+            zIndex: '1000',
+            fontSize: '14px',
+            fontWeight: '500'
         });
         
         document.body.appendChild(notificacion);
@@ -102,5 +175,10 @@ class EmpresaManager {
 
 // Inicializar cuando cargue el dashboard
 document.addEventListener('DOMContentLoaded', function() {
-    window.empresaManager = new EmpresaManager();
+    // Esperar a que el DatabaseManager esté listo
+    if (window.dbManager) {
+        window.empresaManager = new EmpresaManager();
+    } else {
+        console.error('❌ DatabaseManager no está disponible');
+    }
 });

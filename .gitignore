@@ -1,17 +1,49 @@
-# Archivos sensibles - NO SUBIR A GITHUB
+# Archivos de configuración sensibles
 config.js
-*.encrypted
-backup-*
-.env
-secrets.json
-database.json
+config.local.js
+*.env
+.env.local
+.env.production
+
+# Claves y certificados
+*.key
+*.pem
+*.crt
+*.cer
+*.pfx
+
+# Backup de base de datos
+*.db
+*.sqlite
+*.db-journal
+backups/
+
+# Logs
 *.log
-temp/
+logs/
 
 # Archivos del sistema
 .DS_Store
 Thumbs.db
 
+# Archivos temporales
+*.tmp
+*.temp
+
 # Archivos de IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+
+# Dependencias
+node_modules/
+npm-debug.log*
+
+# Build
+dist/
+build/
+
+# Usuario específico (opcional)
+/usuario_local/
+/personal/

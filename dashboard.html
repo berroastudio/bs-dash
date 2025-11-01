@@ -21,7 +21,7 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold text-gray-800">BS Dashboard</h1>
-                    <p class="text-sm text-gray-600" id="empresaNombre">Berroa Studio</p>
+                    <p class="text-sm text-gray-600" id="empresaNombre">Cargando...</p>
                 </div>
             </div>
             
@@ -31,9 +31,7 @@
                 <div class="empresa-switcher flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
                     <label class="text-sm font-medium text-gray-700">Empresa:</label>
                     <select id="empresaSwitcher" class="bg-transparent border-none outline-none text-sm">
-                        <option value="1">Empresa Principal</option>
-                        <option value="2">Empresa Secundaria</option>
-                        <option value="3">Empresa Tres</option>
+                        <option value="1">Cargando...</option>
                     </select>
                     <span id="empresaIndicador" class="empresa-indicador px-2 py-1 text-xs text-white rounded-full bg-blue-500"></span>
                 </div>
@@ -41,8 +39,8 @@
                 <!-- User Info -->
                 <div class="flex items-center gap-4">
                     <div class="text-right">
-                        <p class="font-medium text-gray-800" id="userName">John Berroa</p>
-                        <p class="text-xs text-gray-500">Administrador</p>
+                        <p class="font-medium text-gray-800" id="userName">Cargando...</p>
+                        <p class="text-xs text-gray-500" id="userRole">Administrador</p>
                     </div>
                     <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center border border-gray-300">
                         <i class="bi bi-person text-gray-600"></i>
@@ -65,9 +63,9 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-gray-500">Ventas Hoy</p>
-                        <h3 class="text-2xl font-bold text-gray-800 mt-1" data-ventas>$4,250</h3>
+                        <h3 class="text-2xl font-bold text-gray-800 mt-1" data-ventas>$0</h3>
                         <p class="text-xs text-green-500 mt-1">
-                            <i class="bi bi-arrow-up"></i> 12% vs ayer
+                            <i class="bi bi-arrow-up"></i> <span id="ventasVariacion">0%</span> vs ayer
                         </p>
                     </div>
                     <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center border border-green-200">
@@ -81,9 +79,9 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-gray-500">Productos Stock</p>
-                        <h3 class="text-2xl font-bold text-gray-800 mt-1">1,248</h3>
+                        <h3 class="text-2xl font-bold text-gray-800 mt-1" id="totalProductos">0</h3>
                         <p class="text-xs text-red-500 mt-1">
-                            <i class="bi bi-exclamation-triangle"></i> 15 bajos
+                            <i class="bi bi-exclamation-triangle"></i> <span id="productosBajos">0</span> bajos
                         </p>
                     </div>
                     <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center border border-blue-200">
@@ -97,9 +95,9 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-gray-500">Órdenes Pendientes</p>
-                        <h3 class="text-2xl font-bold text-gray-800 mt-1">24</h3>
+                        <h3 class="text-2xl font-bold text-gray-800 mt-1" id="ordenesPendientes">0</h3>
                         <p class="text-xs text-yellow-500 mt-1">
-                            <i class="bi bi-clock"></i> 5 sin asignar
+                            <i class="bi bi-clock"></i> <span id="ordenesSinAsignar">0</span> sin asignar
                         </p>
                     </div>
                     <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center border border-purple-200">
@@ -113,7 +111,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-gray-500">Clientes Activos</p>
-                        <h3 class="text-2xl font-bold text-gray-800 mt-1">156</h3>
+                        <h3 class="text-2xl font-bold text-gray-800 mt-1" id="totalClientes">0</h3>
                         <p class="text-xs text-gray-500 mt-1">
                             <i class="bi bi-people"></i> Total registrados
                         </p>
@@ -252,31 +250,206 @@
                 </div>
             </div>
         </div>
+
+        <!-- Sistema de Backup (Nuevo) -->
+        <div class="bs-card p-6 mt-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                    <i class="bi bi-shield-check text-green-600"></i>
+                    Seguridad y Backup
+                </h2>
+                <div class="flex gap-2">
+                    <button onclick="crearBackup()" class="bs-btn bg-green-50 text-green-600 border-green-200 hover:bg-green-100">
+                        <i class="bi bi-download"></i>
+                        Backup
+                    </button>
+                    <button onclick="mostrarInfoSistema()" class="bs-btn bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100">
+                        <i class="bi bi-info-circle"></i>
+                        Info Sistema
+                    </button>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div class="text-center p-3 bg-gray-50 rounded-lg">
+                    <div class="text-2xl font-bold text-gray-800" id="totalEmpresas">0</div>
+                    <div class="text-gray-600">Empresas</div>
+                </div>
+                <div class="text-center p-3 bg-gray-50 rounded-lg">
+                    <div class="text-2xl font-bold text-gray-800" id="totalDatos">0</div>
+                    <div class="text-gray-600">Registros</div>
+                </div>
+                <div class="text-center p-3 bg-gray-50 rounded-lg">
+                    <div class="text-2xl font-bold text-gray-800" id="tamanoBD">0 KB</div>
+                    <div class="text-gray-600">Tamaño BD</div>
+                </div>
+            </div>
+        </div>
     </main>
 
+    <!-- Scripts en ORDEN CORRECTO -->
+    <script src="js/config-loader.js"></script>
+    <script src="js/secure-database.js"></script>
+    <script src="js/auth-system.js"></script>
+    <script src="js/database-manager.js"></script>
+    <script src="js/empresa-context.js"></script>
+
     <script>
-        // Verificar autenticación
-        if (localStorage.getItem('isLoggedIn') !== 'true') {
-            window.location.href = 'index.html';
+        // ==================== SISTEMA DE SEGURIDAD ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Iniciando dashboard...');
+            
+            // 1. Verificar autenticación
+            if (!window.auth || !window.auth.requireAuth('index.html')) {
+                console.error('❌ No autenticado, redirigiendo...');
+                return;
+            }
+
+            // 2. Cargar información del usuario
+            const user = window.auth.getUser();
+            if (user) {
+                document.getElementById('userName').textContent = user.nombre || user.email;
+                document.getElementById('userRole').textContent = user.rol === 'admin' ? 'Administrador' : 'Usuario';
+                
+                console.log('👤 Usuario cargado:', user.email);
+            }
+
+            // 3. Inicializar sistema de empresas
+            setTimeout(() => {
+                if (window.empresaManager) {
+                    console.log('🏢 Sistema de empresas listo');
+                    actualizarInfoSistema();
+                } else {
+                    console.error('❌ EmpresaManager no disponible');
+                }
+            }, 1000);
+
+            // 4. Actualizar estadísticas cada 30 segundos
+            setInterval(actualizarEstadisticas, 30000);
+            
+            console.log('✅ Dashboard inicializado correctamente');
+        });
+
+        // ==================== FUNCIONES DEL SISTEMA ====================
+        function actualizarEstadisticas() {
+            if (!window.dbManager || !window.empresaManager) return;
+            
+            const empresaId = window.empresaManager.empresaActual;
+            const stats = window.dbManager.getEstadisticas(empresaId);
+            
+            // Actualizar tarjetas
+            document.querySelector('[data-ventas]').textContent = `$${stats.ventas.toLocaleString()}`;
+            document.getElementById('totalProductos').textContent = stats.productos.toLocaleString();
+            document.getElementById('productosBajos').textContent = stats.productosBajoStock;
+            document.getElementById('ordenesPendientes').textContent = stats.ordenesPendientes;
+            document.getElementById('totalClientes').textContent = stats.clientes.toLocaleString();
+            
+            // Calcular variación (simulada)
+            const variacion = Math.random() * 20 - 5; // -5% a +15%
+            document.getElementById('ventasVariacion').textContent = variacion.toFixed(1) + '%';
+            
+            console.log('📊 Estadísticas actualizadas:', stats);
         }
 
-        // Mostrar información del usuario
-        document.getElementById('userName').textContent = localStorage.getItem('userName') || 'John Berroa';
-        
-        // Cargar nombre de empresa desde configuración
-        const empresaConfig = JSON.parse(localStorage.getItem('bsdash_empresa') || '{}');
-        document.getElementById('empresaNombre').textContent = empresaConfig.nombre || 'Berroa Studio';
+        function actualizarInfoSistema() {
+            if (!window.dbManager) return;
+            
+            const info = window.dbManager.getInfo();
+            const empresas = window.dbManager.getEmpresas();
+            
+            document.getElementById('totalEmpresas').textContent = empresas.length;
+            document.getElementById('totalDatos').textContent = 
+                (info.clientes + info.productos + info.facturas).toLocaleString();
+            document.getElementById('tamanoBD').textContent = Math.round(info.tamaño / 1024) + ' KB';
+            
+            // Actualizar estadísticas iniciales
+            actualizarEstadisticas();
+        }
 
-        // Función logout
-        function logout() {
-            if(confirm("¿Estás seguro de que deseas cerrar sesión?")) {
-                localStorage.clear();
-                window.location.href = 'index.html';
+        function crearBackup() {
+            if (!window.dbManager) {
+                alert('❌ Sistema de base de datos no disponible');
+                return;
+            }
+            
+            if (confirm('¿Crear backup de todos los datos?')) {
+                const success = window.dbManager.backup();
+                if (success) {
+                    mostrarNotificacion('✅ Backup creado correctamente', 'success');
+                } else {
+                    mostrarNotificacion('❌ Error creando backup', 'error');
+                }
             }
         }
-    </script>
 
-    <!-- Script del sistema multiempresa -->
-    <script src="js/empresa-context.js"></script>
+        function mostrarInfoSistema() {
+            if (!window.dbManager) return;
+            
+            const info = window.dbManager.getInfo();
+            const user = window.auth.getUser();
+            const empresa = window.empresaManager ? window.empresaManager.getEmpresaActual() : null;
+            
+            const mensaje = `
+Sistema BS Dashboard
+--------------------
+👤 Usuario: ${user?.email}
+🏢 Empresa: ${empresa?.nombre || 'N/A'}
+📊 Estadísticas:
+   • Empresas: ${info.empresas}
+   • Clientes: ${info.clientes}
+   • Productos: ${info.productos}
+   • Facturas: ${info.facturas}
+💾 Tamaño BD: ${Math.round(info.tamaño / 1024)} KB
+🕐 Última actualización: ${new Date(info.ultima_actualizacion).toLocaleString()}
+            `.trim();
+            
+            alert(mensaje);
+        }
+
+        function logout() {
+            if (confirm("¿Estás seguro de que deseas cerrar sesión?")) {
+                console.log('👋 Cerrando sesión...');
+                window.auth.logout();
+            }
+        }
+
+        function mostrarNotificacion(mensaje, tipo = 'info') {
+            const notificacion = document.createElement('div');
+            notificacion.textContent = mensaje;
+            
+            const colors = {
+                success: '#10B981',
+                error: '#EF4444', 
+                info: '#3B82F6'
+            };
+            
+            Object.assign(notificacion.style, {
+                position: 'fixed',
+                top: '20px',
+                right: '20px',
+                background: colors[tipo] || colors.info,
+                color: 'white',
+                padding: '12px 20px',
+                borderRadius: '8px',
+                zIndex: '10000',
+                fontSize: '14px',
+                fontWeight: '500'
+            });
+            
+            document.body.appendChild(notificacion);
+            
+            setTimeout(() => {
+                notificacion.remove();
+            }, 4000);
+        }
+
+        // ==================== DEBUG ====================
+        console.log('🔧 Debug info:');
+        console.log('• Config:', window.CONFIG ? '✅' : '❌');
+        console.log('• SecureDB:', window.secureDB ? '✅' : '❌'); 
+        console.log('• Auth:', window.auth ? '✅' : '❌');
+        console.log('• DB Manager:', window.dbManager ? '✅' : '❌');
+        console.log('• Empresa Manager:', window.empresaManager ? '✅' : '❌');
+    </script>
 </body>
 </html>
