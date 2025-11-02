@@ -6,12 +6,20 @@ class EmpresaManager {
     }
 
     async init() {
-        // Esperar a que la base de datos esté lista
-        await this.cargarEmpresas();
+    try {
+        // Esperar máximo 3 segundos
+        await Promise.race([
+            this.cargarEmpresas(),
+            new Promise(resolve => setTimeout(resolve, 3000))
+        ]);
+        
         this.setupSwitcher();
         this.actualizarUI();
         this.cargarDatosEmpresa();
+    } catch (error) {
+        console.error('❌ Error inicializando empresa manager:', error);
     }
+}
 
     async cargarEmpresas() {
         this.empresas = window.dbManager.getEmpresas();

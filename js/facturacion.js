@@ -526,3 +526,131 @@ function buscarFacturas() {
     
     mostrarFacturas(facturasFiltradas);
 }
+// ==================== INTEGRACIÓN CON SISTEMA DE PAGOS ====================
+
+function integrarConSistemaPagos(factura) {
+    console.log('🔄 Integrando factura con sistema de pagos...');
+    
+    // Verificar que el sistema de pagos esté disponible
+    if (!window.pagosSystem) {
+        console.error('❌ Sistema de pagos no disponible');
+        return false;
+    }
+    
+    try {
+        // Crear pago automáticamente para la factura
+        const pagoData = {
+            factura_id: factura.id,
+            numero_factura: factura.numero,
+            cliente_nombre: factura.clienteNombre,
+            cliente_identificacion: factura.clienteIdentificacion,
+            monto: factura.total,
+            moneda: 'USD',
+            metodo_pago: factura.metodoPago,
+            fecha_vencimiento: calcularFechaVencimiento(factura.fecha),
+            descripcion: `Pago de ${factura.tipo} ${factura.numero}`,
+            empresa_id: 1, // Por defecto
+            estado: mapearEstadoFacturaAPago(factura.estadoPago)
+        };
+        
+        window.pagosSystem.crearPago(pagoData);
+        console.log('✅ Pago integrado para factura:', factura.numero);
+        return true;
+        
+    } catch (error) {
+        console.error('💥 Error integrando con sistema de pagos:', error);
+        return false;
+    }
+}
+
+function calcularFechaVencimiento(fechaFactura) {
+    const fecha = new Date(fechaFactura);
+    fecha.setDate(fecha.getDate() + 30); // 30 días para pagar
+    return fecha.toISOString();
+}
+
+function mapearEstadoFacturaAPago(estadoFactura) {
+    const mapeo = {
+        'pagada': 'pagado',
+        'pendiente': 'pendiente', 
+        'parcial': 'parcial',
+        'anulada': 'cancelado'
+    };
+    return mapeo[estadoFactura] || 'pendiente';
+}
+
+// ==================== MODIFICAR FUNCIÓN guardarFactura ====================
+
+// Guardar la función original
+const guardarFacturaOriginal = window.guardarFactura;
+
+// Reemplazar con la función integrada
+window.guardarFactura = function() {
+    if (!validarFactura()) return;
+    
+    const factura = obtenerDatosFactura();
+    factura.estado = 'activa';
+    
+    if (facturaEditando) {
+        // Editar factura existente
+        const index = facturas.findIndex(f => f.id === facturaEditando);
+        if (index !== -1) {
+            facturas[index] = factura;
+        }
+    } else {
+        // Nueva factura
+        factura.id = nextFacturaId++;
+        factura.numero = `FACT-${String(factura.id).padStart(3, '0')}`;
+        factura.fecha = new Date().toISOString();
+        facturas.push(factura);
+        
+        // ✅ INTEGRAR CON SISTEMA DE PAGOS - SOLO PARA NUEVAS FACTURAS
+        setTimeout(() => {
+            integrarConSistemaPagos(factura);
+        }, 100);
+    }
+    
+    localStorage.setItem('bsdash_facturas', JSON.stringify(facturas));
+    cerrarModalFactura();
+    cargarFacturas();
+    cargarEstadisticas();
+    alert('✅ Factura guardada correctamente' + (window.pagosSystem ? ' y integrada con sistema de pagos' : ''));
+};
+
+// ==================== INTEGRAR FACTURAS EXISTENTES ====================
+
+function integrarFacturasExistentes() {
+    console.log('🔄 Integrando facturas existentes con sistema de pagos...');
+    
+    if (!window.pagosSystem) {
+        console.log('❌ Sistema de pagos no disponible para integración');
+        return;
+    }
+    
+    const facturasExistentes = JSON.parse(localStorage.getItem('bsdash_facturas') || '[]');
+    let integradas = 0;
+    
+    facturasExistentes.forEach(factura => {
+        if (factura.estado !== 'anulada') {
+            // Verificar si ya existe un pago para esta factura
+            const pagos = window.pagosSystem.obtenerPagos();
+            const pagoExistente = pagos.find(p => p.factura_id === factura.id);
+            
+            if (!pagoExistente) {
+                integrarConSistemaPagos(factura);
+                integradas++;
+            }
+        }
+    });
+    
+    if (integradas > 0) {
+        console.log(`✅ ${integradas} facturas existentes integradas con sistema de pagos`);
+    }
+}
+
+// Ejecutar integración al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        integrarFacturasExistentes();
+    }, 2000);
+});

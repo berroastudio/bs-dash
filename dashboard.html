@@ -299,18 +299,20 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Iniciando dashboard...');
             
-            // 1. Verificar autenticación
-            if (!window.auth || !window.auth.requireAuth('index.html')) {
-                console.error('❌ No autenticado, redirigiendo...');
+            // 1. Verificar autenticación - VERSIÓN CORREGIDA
+            if (!window.auth || !window.auth.getCurrentUser()) {
+                console.log('❌ No autenticado, redirigiendo a login...');
+                window.location.href = 'login.html';
                 return;
             }
 
+            console.log('✅ Usuario autenticado, iniciando dashboard...');
+            
             // 2. Cargar información del usuario
-            const user = window.auth.getUser();
+            const user = window.auth.getCurrentUser();
             if (user) {
-                document.getElementById('userName').textContent = user.nombre || user.email;
-                document.getElementById('userRole').textContent = user.rol === 'admin' ? 'Administrador' : 'Usuario';
-                
+                document.getElementById('userName').textContent = user.name || user.email;
+                document.getElementById('userRole').textContent = user.role === 'admin' ? 'Administrador' : 'Usuario';
                 console.log('👤 Usuario cargado:', user.email);
             }
 
@@ -327,26 +329,40 @@
             // 4. Actualizar estadísticas cada 30 segundos
             setInterval(actualizarEstadisticas, 30000);
             
+            // 5. Inicializar dashboard
+            initDashboard();
+            
             console.log('✅ Dashboard inicializado correctamente');
         });
 
         // ==================== FUNCIONES DEL SISTEMA ====================
+        function initDashboard() {
+            console.log('📊 Inicializando componentes del dashboard...');
+            actualizarEstadisticas();
+            actualizarInfoSistema();
+        }
+
         function actualizarEstadisticas() {
-            if (!window.dbManager || !window.empresaManager) return;
+            if (!window.dbManager) {
+                console.log('⏳ Esperando dbManager...');
+                return;
+            }
             
-            const empresaId = window.empresaManager.empresaActual;
+            const empresaId = window.empresaManager ? window.empresaManager.empresaActual : 1;
             const stats = window.dbManager.getEstadisticas(empresaId);
             
             // Actualizar tarjetas
-            document.querySelector('[data-ventas]').textContent = `$${stats.ventas.toLocaleString()}`;
-            document.getElementById('totalProductos').textContent = stats.productos.toLocaleString();
-            document.getElementById('productosBajos').textContent = stats.productosBajoStock;
-            document.getElementById('ordenesPendientes').textContent = stats.ordenesPendientes;
-            document.getElementById('totalClientes').textContent = stats.clientes.toLocaleString();
-            
-            // Calcular variación (simulada)
-            const variacion = Math.random() * 20 - 5; // -5% a +15%
-            document.getElementById('ventasVariacion').textContent = variacion.toFixed(1) + '%';
+            if (document.querySelector('[data-ventas]')) {
+                document.querySelector('[data-ventas]').textContent = `$${stats.ventas.toLocaleString()}`;
+                document.getElementById('totalProductos').textContent = stats.productos.toLocaleString();
+                document.getElementById('productosBajos').textContent = stats.productosBajoStock;
+                document.getElementById('ordenesPendientes').textContent = stats.ordenesPendientes;
+                document.getElementById('totalClientes').textContent = stats.clientes.toLocaleString();
+                
+                // Calcular variación (simulada)
+                const variacion = Math.random() * 20 - 5;
+                document.getElementById('ventasVariacion').textContent = variacion.toFixed(1) + '%';
+            }
             
             console.log('📊 Estadísticas actualizadas:', stats);
         }
@@ -386,7 +402,7 @@
             if (!window.dbManager) return;
             
             const info = window.dbManager.getInfo();
-            const user = window.auth.getUser();
+            const user = window.auth.getCurrentUser();
             const empresa = window.empresaManager ? window.empresaManager.getEmpresaActual() : null;
             
             const mensaje = `
@@ -410,6 +426,7 @@ Sistema BS Dashboard
             if (confirm("¿Estás seguro de que deseas cerrar sesión?")) {
                 console.log('👋 Cerrando sesión...');
                 window.auth.logout();
+                window.location.href = 'login.html';
             }
         }
 
