@@ -6,30 +6,30 @@
     <title>BS Dash - Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .bs-card { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .bs-btn-primary { background: #3b82f6; color: white; width: 100%; padding: 0.75rem; border-radius: 0.5rem; }
+        .bs-btn-primary:hover { background: #2563eb; }
+    </style>
 </head>
-<body class="bg-[#fbfbfb] min-h-screen flex items-center justify-center p-4">
-    <div class="bs-card p-8 w-full max-w-md animate-fade-in">
-        <!-- Header -->
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+    <div class="bs-card w-full max-w-md">
         <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-200">
+            <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <i class="bi bi-grid-3x3-gap-fill text-blue-600 text-2xl"></i>
             </div>
             <h1 class="text-2xl font-bold text-gray-800">BS Dash</h1>
             <p class="text-gray-600 mt-2">Business Solution Dashboard</p>
         </div>
 
-        <!-- Formulario Login -->
         <form id="loginForm" class="space-y-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">
                     <i class="bi bi-envelope mr-2"></i>Correo electrónico
                 </label>
                 <input 
-                    id="email"
-                    type="email" 
-                    required
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-300 transition-all bg-white"
+                    id="email" type="email" required
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-300 transition-all"
                     placeholder="admin@berroa.com"
                     value="admin@berroa.com"
                 >
@@ -40,16 +40,13 @@
                     <i class="bi bi-lock mr-2"></i>Contraseña
                 </label>
                 <input 
-                    id="password"
-                    type="password" 
-                    required
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-300 transition-all bg-white"
+                    id="password" type="password" required
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-300 transition-all"
                     placeholder="••••••••"
                     value="809415"
                 >
             </div>
 
-            <!-- Mensaje de error -->
             <div id="errorMsg" class="hidden p-3 bg-red-50 border border-red-200 rounded-lg">
                 <p class="text-red-700 text-sm text-center">
                     <i class="bi bi-exclamation-triangle mr-2"></i>
@@ -57,173 +54,53 @@
                 </p>
             </div>
 
-            <button 
-                type="submit"
-                class="w-full bs-btn-primary py-3 rounded-lg font-semibold transition-all mt-4"
-                id="loginButton"
-            >
-                <i class="bi bi-box-arrow-in-right"></i>
-                Ingresar al Sistema
+            <button type="submit" class="bs-btn-primary font-semibold">
+                <i class="bi bi-box-arrow-in-right"></i> Ingresar al Sistema
             </button>
         </form>
 
-        <!-- Credenciales -->
         <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
             <p class="text-sm text-blue-700 text-center">
-                <strong class="text-blue-800">Usuario Administrador</strong><br>
-                <span class="text-blue-600">admin@berroa.com / 809415</span>
-            </p>
-        </div>
-
-        <!-- Estado del sistema -->
-        <div id="systemStatus" class="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200 hidden">
-            <p class="text-xs text-gray-600 text-center">
-                <i class="bi bi-info-circle mr-1"></i>
-                <span id="statusText">Inicializando sistema...</span>
+                <strong>Usuario Administrador</strong><br>
+                admin@berroa.com / 809415
             </p>
         </div>
     </div>
 
-    <!-- Scripts en ORDEN CORRECTO -->
-    <script src="js/config-loader.js"></script>
-    <script src="js/secure-database.js"></script>
-    <script src="js/auth-system.js"></script>
-    <script src="js/database-manager.js"></script>
+    <!-- SOLO ESTE SCRIPT -->
+    <script src="js/simple-auth.js"></script>
     
-    <!-- Script de login actualizado -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const loginForm = document.getElementById('loginForm');
-            const emailInput = document.getElementById('email');
-            const passwordInput = document.getElementById('password');
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
             const errorMsg = document.getElementById('errorMsg');
             const errorText = document.getElementById('errorText');
-            const loginButton = document.getElementById('loginButton');
-            const systemStatus = document.getElementById('systemStatus');
-            const statusText = document.getElementById('statusText');
+            const button = this.querySelector('button');
 
-            // Mostrar estado del sistema
-            function showStatus(message, type = 'info') {
-                statusText.textContent = message;
-                systemStatus.className = `mt-4 p-3 rounded-lg border text-xs text-center `;
-                
-                if (type === 'error') {
-                    systemStatus.classList.add('bg-red-50', 'border-red-200', 'text-red-700');
-                } else if (type === 'success') {
-                    systemStatus.classList.add('bg-green-50', 'border-green-200', 'text-green-700');
-                } else {
-                    systemStatus.classList.add('bg-gray-50', 'border-gray-200', 'text-gray-600');
-                }
-                
-                systemStatus.classList.remove('hidden');
-            }
+            // Mostrar loading
+            button.innerHTML = '<i class="bi bi-arrow-repeat animate-spin"></i> Verificando...';
+            button.disabled = true;
+            errorMsg.classList.add('hidden');
 
-            // Verificar si ya está autenticado
-            if (window.auth && window.auth.checkAuth()) {
-                showStatus('✅ Sesión activa, redirigiendo...', 'success');
-                setTimeout(() => {
+            try {
+                const success = await window.simpleAuth.login(email, password);
+                
+                if (success) {
                     window.location.href = 'dashboard.html';
-                }, 1000);
-                return;
-            }
-
-            // Mostrar estado de inicialización
-            showStatus('🔧 Inicializando base de datos segura...');
-
-            // Esperar a que el sistema esté listo
-            setTimeout(() => {
-                if (window.dbManager && window.auth) {
-                    showStatus('✅ Sistema listo. Puede iniciar sesión.', 'success');
-                    
-                    // Info de la base de datos
-                    const dbInfo = window.dbManager.getInfo();
-                    console.log('📊 Info BD:', dbInfo);
-                    
                 } else {
-                    showStatus('❌ Error inicializando sistema', 'error');
+                    errorText.textContent = 'Credenciales incorrectas';
+                    errorMsg.classList.remove('hidden');
                 }
-            }, 1000);
-
-            // Manejar el login
-            if (loginForm) {
-                loginForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    
-                    const email = emailInput.value.trim();
-                    const password = passwordInput.value;
-                    
-                    // Validaciones básicas
-                    if (!email || !password) {
-                        errorText.textContent = 'Por favor complete todos los campos';
-                        errorMsg.classList.remove('hidden');
-                        return;
-                    }
-
-                    // Mostrar loading
-                    const originalText = loginButton.innerHTML;
-                    loginButton.innerHTML = '<i class="bi bi-arrow-repeat animate-spin"></i> Verificando...';
-                    loginButton.disabled = true;
-                    errorMsg.classList.add('hidden');
-
-                    try {
-                        console.log('🔐 Intentando login:', email);
-                        const success = await window.auth.login(email, password);
-                        
-                        if (success) {
-                            showStatus('✅ Login exitoso, redirigiendo...', 'success');
-                            console.log('🎉 Login exitoso para:', email);
-                            
-                            setTimeout(() => {
-                                window.location.href = 'dashboard.html';
-                            }, 1000);
-                        } else {
-                            errorText.textContent = 'Credenciales incorrectas. Use: admin@berroa.com / 809415';
-                            errorMsg.classList.remove('hidden');
-                            showStatus('❌ Credenciales incorrectas', 'error');
-                            console.warn('❌ Login fallido para:', email);
-                        }
-                    } catch (error) {
-                        console.error('💥 Error en login:', error);
-                        errorText.textContent = 'Error del sistema. Revise la consola.';
-                        errorMsg.classList.remove('hidden');
-                        showStatus('❌ Error del sistema', 'error');
-                    } finally {
-                        // Restaurar botón
-                        loginButton.innerHTML = originalText;
-                        loginButton.disabled = false;
-                    }
-                });
+            } catch (error) {
+                errorText.textContent = 'Error del sistema';
+                errorMsg.classList.remove('hidden');
+            } finally {
+                button.innerHTML = '<i class="bi bi-box-arrow-in-right"></i> Ingresar al Sistema';
+                button.disabled = false;
             }
-
-            // Auto-focus en el email
-            if (emailInput) {
-                emailInput.focus();
-            }
-
-            // Atajos de teclado
-            document.addEventListener('keydown', function(e) {
-                // Ctrl+Enter para login rápido
-                if (e.ctrlKey && e.key === 'Enter') {
-                    loginForm.dispatchEvent(new Event('submit'));
-                }
-                
-                // Tab entre campos
-                if (e.key === 'Enter' && e.target.type !== 'submit') {
-                    e.preventDefault();
-                    const inputs = Array.from(loginForm.querySelectorAll('input'));
-                    const currentIndex = inputs.indexOf(e.target);
-                    const nextIndex = (currentIndex + 1) % inputs.length;
-                    inputs[nextIndex].focus();
-                }
-            });
-
-            // Debug info en consola
-            console.log('🚀 Sistema de login cargado');
-            console.log('📧 Email por defecto:', emailInput.value);
-            console.log('🔐 Configuración cargada:', window.CONFIG ? '✅' : '❌');
-            console.log('💾 Base de datos:', window.secureDB ? '✅' : '❌');
-            console.log('🔑 Auth system:', window.auth ? '✅' : '❌');
-            console.log('📊 Database manager:', window.dbManager ? '✅' : '❌');
         });
     </script>
 </body>
